@@ -1,0 +1,77 @@
+name: Windows portable release assets
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version (MAJOR.MINOR.PATCH)
+        required: true
+        default: '3.0.0'
+      source_ref:
+        description: Full source commit SHA
+        required: true
+      release_id:
+        description: Existing draft release ID
+        required: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      SOURCE_REF: ${{ inputs.source_ref }}
+      RELEASE_ID: ${{ inputs.release_id }}
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14.4'
+      - name: Build audited portable archives
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$' -or $env:SOURCE_REF -notmatch '^[a-f0-9]{40}$' -or $env:RELEASE_ID -notmatch '^\d+$') { throw 'Invalid release inputs' }
+          if ((git rev-parse HEAD) -ne $env:SOURCE_REF) { throw 'Source revision mismatch' }
+          python -m venv .release-env
+          if ($LASTEXITCODE -ne 0) { throw 'Build environment creation failed' }
+          & .\.release-env\Scripts\python.exe -m pip install -r requirements-build.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Build dependency installation failed' }
+          & .\.release-env\Scripts\python.exe -B scripts/build_portable.py --version $env:RELEASE_VERSION --output release/portable
+          if ($LASTEXITCODE -ne 0) { throw 'Portable build failed' }
+      - name: Check English and Chinese startup
+        shell: pwsh
+        run: |
+          foreach ($language in @('en','zh')) {
+            & .\scripts\verify_packaged_startup.ps1 -ExecutablePath '.\release\portable\dist\AEGIS Command Terminal\AEGIS Command Terminal.exe' -WorkflowPath '.\examples\workflows\01_hello_text.json' -Language $language
+          }
+      - name: Upload verified assets to the draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2026-03-10'}
+          $base="https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/$env:RELEASE_ID"
+          $release=Invoke-RestMethod -Uri $base -Headers $headers
+          if (-not $release.draft -or $release.tag_name -ne "v$env:RELEASE_VERSION" -or $release.target_commitish -ne $env:SOURCE_REF) { throw 'Draft release identity mismatch' }
+          foreach ($name in @("AEGIS-v$env:RELEASE_VERSION-windows-x64.zip","AEGIS-v$env:RELEASE_VERSION-source.zip",'SHA256SUMS.txt')) {
+            $file=Join-Path 'release/portable' $name
+            $digest='sha256:'+(Get-FileHash -Algorithm SHA256 -LiteralPath $file).Hash.ToLowerInvariant()
+            $existing=@(Invoke-RestMethod -Uri "$base/assets" -Headers $headers | Where-Object name -eq $name)
+            if ($existing.Count -gt 0) {
+              if ($existing.Count -ne 1 -or $existing[0].digest -ne $digest) { throw 'Existing draft asset differs from this build' }
+              continue
+            }
+            $type=if ($name.EndsWith('.zip')) {'application/zip'} else {'text/plain'}
+            $uri="https://uploads.github.com/repos/$env:GITHUB_REPOSITORY/releases/$env:RELEASE_ID/assets?name=$([Uri]::EscapeDataString($name))"
+            $asset=Invoke-RestMethod -Uri $uri -Headers $headers -Method Post -InFile $file -ContentType $type -TimeoutSec 900
+            if ($asset.state -ne 'uploaded' -or $asset.digest -ne $digest -or $asset.size -ne (Get-Item -LiteralPath $file).Length) { throw 'Uploaded asset verification failed' }
+            Write-Output "$name verified: $digest"
+          }
