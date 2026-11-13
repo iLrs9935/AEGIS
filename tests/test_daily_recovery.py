@@ -165,25 +165,40 @@ class ExternalLaunchTests(unittest.TestCase):
                 'ctypes.windll.kernel32.GetDllDirectoryW(len(v),v)\n'
                 'json.dump(dict(pid=os.getpid(),dll=v.value,cwd=os.getcwd(),args=sys.argv[2:],'
                 'pythonpath=os.environ.get("PYTHONPATH")),open(sys.argv[1],"w"))\n', encoding='utf-8')
-            with mock.patch.object(func_process, '_find_running_process_pid', return_value=None), \
-                    mock.patch.object(sys, 'frozen', True, create=True), \
-                    mock.patch.dict(os.environ, {'PYTHONPATH': temp}):
-                success, pid = func_process.execute_start_process(
-                    # The Windows venv redirector can launch a second process;
-                    # use the actual interpreter to test the returned PID.
-                    getattr(sys, '_base_executable', sys.executable),
-                    subprocess.list2cmdline([str(script), str(output), 'a b', '-t', '1', '-e']),
-                    working_dir=temp)
-            self.assertTrue(success)
-            deadline = time.monotonic() + 5
-            while not output.exists() and time.monotonic() < deadline:
-                time.sleep(0.01)
-            result = json.loads(output.read_text())
-            self.assertEqual(result['pid'], pid)
-            self.assertEqual(result['dll'], '')
-            self.assertEqual(result['cwd'], temp)
-            self.assertEqual(result['args'], ['a b', '-t', '1', '-e'])
-            self.assertIsNone(result['pythonpath'])
+            children = []
+            real_popen = subprocess.Popen
+
+            def spawn(*args, **kwargs):
+                child = real_popen(*args, **kwargs)
+                children.append(child)
+                return child
+
+            try:
+                with mock.patch.object(func_process, '_find_running_process_pid', return_value=None), \
+                        mock.patch.object(sys, 'frozen', True, create=True), \
+                        mock.patch.dict(os.environ, {'PYTHONPATH': temp}), \
+                        mock.patch.object(func_process.subprocess, 'Popen', side_effect=spawn):
+                    success, pid = func_process.execute_start_process(
+                        # The Windows venv redirector can launch a second process;
+                        # use the actual interpreter to test the returned PID.
+                        getattr(sys, '_base_executable', sys.executable),
+                        subprocess.list2cmdline([str(script), str(output), 'a b', '-t', '1', '-e']),
+                        working_dir=temp)
+                self.assertTrue(success)
+                self.assertEqual(len(children), 1)
+                # File creation precedes process exit; Windows keeps its cwd locked.
+                self.assertEqual(children[0].wait(timeout=5), 0)
+                result = json.loads(output.read_text())
+                self.assertEqual(result['pid'], pid)
+                self.assertEqual(result['dll'], '')
+                self.assertEqual(result['cwd'], temp)
+                self.assertEqual(result['args'], ['a b', '-t', '1', '-e'])
+                self.assertIsNone(result['pythonpath'])
+            finally:
+                for child in children:
+                    if child.poll() is None:
+                        child.kill()
+                    child.wait(timeout=5)
 
     @unittest.skipUnless(os.name == 'nt', 'Windows DLL search inheritance')
     def test_real_windows_dll_search_is_reset_and_restored_even_on_error(self):
