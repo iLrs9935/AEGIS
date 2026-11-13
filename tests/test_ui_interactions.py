@@ -4,18 +4,15 @@ from unittest.mock import patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PyQt6.QtWidgets import QApplication, QLineEdit, QSizePolicy
+from PyQt6.QtWidgets import QLineEdit, QSizePolicy
+from qt_test_support import QtTestCase
 
 from ui.graph_items import GroupItem, NodeItem
 from ui.main_window import MainWindow, stop_event
 from ui.node_inspector import NodeInspector
 
 
-class UIInteractionTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.app = QApplication.instance() or QApplication([])
-
+class UIInteractionTests(QtTestCase):
     def test_inspector_title_renames_selected_node(self):
         node = NodeItem("node-1", "等待时间", {"等待时长(s)": "2"}, "时间")
         inspector = NodeInspector()

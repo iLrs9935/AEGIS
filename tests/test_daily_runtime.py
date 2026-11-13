@@ -9,8 +9,8 @@ from pathlib import Path
 from unittest import mock
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
-from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QThreadPool
+from qt_test_support import QtTestCase
 from core.event_bus import bus
 from core.run_log import RunLog
 from functions.func_actions import stop_event
@@ -20,11 +20,7 @@ from ui.main_window import MainWindow
 from ui.graph_items import NodeItem
 
 
-class DailyRuntimeTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.app = QApplication.instance() or QApplication([])
-
+class DailyRuntimeTests(QtTestCase):
     def run_daily(self, scenario, daily_completion='Daily Task Completed'):
         stop_event.clear()
         with tempfile.TemporaryDirectory() as directory:

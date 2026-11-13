@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PyQt6.QtWidgets import QApplication
+from qt_test_support import QtTestCase
 from core.event_bus import bus
 from nodes import NODE_REGISTRY
 from ui.i18n import ENGLISH, QComboBox, language, set_language, tr
@@ -13,11 +13,7 @@ from ui.graph_items import NodeItem, NodeWidget, RouteRulesEditor
 from ui.main_window import MainWindow
 
 
-class LocalizationTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.app = QApplication.instance() or QApplication([])
-
+class LocalizationTests(QtTestCase):
     def setUp(self):
         self.previous = language()
         set_language("en")

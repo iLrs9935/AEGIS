@@ -13,7 +13,7 @@ from contextlib import redirect_stdout
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PyQt6.QtWidgets import QApplication
+from qt_test_support import QtTestCase
 from core import config
 from core.event_bus import bus
 from functions.func_actions import stop_event
@@ -112,11 +112,7 @@ class ReleaseAuditTests(unittest.TestCase):
                 self.assertEqual(check_release(root), 1)
 
 
-class PublicWorkflowTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.app = QApplication.instance() or QApplication([])
-
+class PublicWorkflowTests(QtTestCase):
     def test_every_sample_loads_without_lost_nodes_edges_or_configuration(self):
         window = MainWindow()
         try:
