@@ -1,0 +1,208 @@
+{
+  "meta": {
+    "theme": "Command Terminal",
+    "edge_style": "curve"
+  },
+  "nodes": [
+    {
+      "id": "source",
+      "type": "等待时间",
+      "name": "输出测试对象",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 0,
+      "y": 0,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": "{\"found\":true,\"confidence\":0.95}"
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "router",
+      "type": "信号分流器",
+      "name": "按 found 分支",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": 280,
+      "y": 0,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "数据分流",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到": {
+            "value": ""
+          },
+          "未找到": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "yes",
+      "type": "文本输入",
+      "name": "找到分支",
+      "category": "文本",
+      "display_mode": "standard",
+      "x": 560,
+      "y": -80,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "文本输入",
+        "文本内容": "找到目标",
+        "存入变量名": "route_result"
+      },
+      "signal_config": {
+        "outputs": {
+          "文本输出": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "no",
+      "type": "文本输入",
+      "name": "未找到分支",
+      "category": "文本",
+      "display_mode": "standard",
+      "x": 560,
+      "y": 120,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "文本输入",
+        "文本内容": "没有找到目标",
+        "存入变量名": "route_result"
+      },
+      "signal_config": {
+        "outputs": {
+          "文本输出": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "show",
+      "type": "文本展示",
+      "name": "显示分支结果",
+      "category": "文本",
+      "display_mode": "standard",
+      "x": 840,
+      "y": 0,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "只读展示板",
+        "读取变量名": "route_result",
+        "展示内容": ""
+      },
+      "signal_config": {
+        "outputs": {
+          "通过": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    }
+  ],
+  "groups": [],
+  "edges": [
+    {
+      "src_id": "source",
+      "src_port": "OUT",
+      "tgt_id": "router",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router",
+      "src_port": "找到",
+      "tgt_id": "yes",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router",
+      "src_port": "未找到",
+      "tgt_id": "no",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "yes",
+      "src_port": "文本输出",
+      "tgt_id": "show",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "no",
+      "src_port": "文本输出",
+      "tgt_id": "show",
+      "tgt_port": "IN"
+    }
+  ]
+}

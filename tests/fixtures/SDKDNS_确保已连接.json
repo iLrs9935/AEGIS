@@ -1,0 +1,355 @@
+{
+  "meta": {
+    "theme": "Command Terminal",
+    "edge_style": "circuit"
+  },
+  "nodes": [
+    {
+      "id": "sdkdns-open",
+      "type": "启动程序",
+      "name": "打开或唤醒 SDKDNS",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": -860,
+      "y": -100,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "程序路径": "C:/Apps/SDKDNS/SDKDNS.exe",
+        "启动参数": "",
+        "已运行时": "再次调用以唤醒窗口",
+        "等待启动(s)": "3.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "sdkdns-wake",
+      "type": "唤醒并置顶窗口",
+      "name": "唤醒 SDKDNS 主窗口",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": -590,
+      "y": -100,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "SDKDNS 窗口唤醒",
+        "目标窗口标题": "SDKDNS",
+        "操作前延迟(s)": "0.3",
+        "操作后稳定延迟(s)": "1.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "已唤醒(继续)": {
+            "value": ""
+          },
+          "未找到目标(阻断)": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "sdkdns-check-connected",
+      "type": "视觉寻图",
+      "name": "检查是否已连接 (1.png)",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": -310,
+      "y": -100,
+      "w": 230,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台(拉起窗口)",
+        "节点标签": "SDKDNS 已连接检测",
+        "窗口标题": "SDKDNS",
+        "图片路径": "images/sdkdns/1.png",
+        "置信度": "0.88",
+        "灰度匹配": "否",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": "2",
+        "重试间隔(s)": "0.5"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "sdkdns-route-connected",
+      "type": "信号分流器",
+      "name": "已连接就结束",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": -20,
+      "y": -100,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "SDKDNS 连接状态分流",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "已连接(结束)",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未连接(检查0)",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "已连接(结束)": {
+            "value": ""
+          },
+          "未连接(检查0)": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "sdkdns-check-connect-button",
+      "type": "视觉寻图",
+      "name": "寻找未连接按钮 (0.png)",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": 260,
+      "y": 60,
+      "w": 235,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台(拉起窗口)",
+        "节点标签": "SDKDNS 未连接按钮",
+        "窗口标题": "SDKDNS",
+        "图片路径": "images/sdkdns/0.png",
+        "置信度": "0.88",
+        "灰度匹配": "否",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": "4",
+        "重试间隔(s)": "0.5"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "sdkdns-route-connect-button",
+      "type": "信号分流器",
+      "name": "确认找到连接按钮",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": 550,
+      "y": 60,
+      "w": 230,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "SDKDNS 连接按钮分流",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到连接按钮",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到(结束)",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到连接按钮": {
+            "value": ""
+          },
+          "未找到(结束)": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "sdkdns-click-connect",
+      "type": "物理点击",
+      "name": "点击连接",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": 840,
+      "y": 60,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台物理(真实鼠标)",
+        "点击按键": "left",
+        "点击动作": "单击",
+        "操作前延迟(s)": "0.2"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "sdkdns-wait-connected",
+      "type": "等待时间",
+      "name": "等待连接状态刷新",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 840,
+      "y": -100,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "1.5"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    }
+  ],
+  "groups": [],
+  "edges": [
+    {
+      "src_id": "sdkdns-open",
+      "src_port": "OUT",
+      "tgt_id": "sdkdns-wake",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "sdkdns-wake",
+      "src_port": "已唤醒(继续)",
+      "tgt_id": "sdkdns-check-connected",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "sdkdns-check-connected",
+      "src_port": "OUT",
+      "tgt_id": "sdkdns-route-connected",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "sdkdns-route-connected",
+      "src_port": "未连接(检查0)",
+      "tgt_id": "sdkdns-check-connect-button",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "sdkdns-check-connect-button",
+      "src_port": "OUT",
+      "tgt_id": "sdkdns-route-connect-button",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "sdkdns-route-connect-button",
+      "src_port": "找到连接按钮",
+      "tgt_id": "sdkdns-click-connect",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "sdkdns-click-connect",
+      "src_port": "OUT",
+      "tgt_id": "sdkdns-wait-connected",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "sdkdns-wait-connected",
+      "src_port": "OUT",
+      "tgt_id": "sdkdns-check-connected",
+      "tgt_port": "IN"
+    }
+  ]
+}

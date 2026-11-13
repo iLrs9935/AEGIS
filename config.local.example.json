@@ -1,0 +1,7 @@
+{
+  "AEGIS_BARK_URL": "",
+  "AEGIS_CRAWLER_URL": "https://example.com/codes",
+  "AEGIS_GAME_EXE": "C:/Games/Example/Game.exe",
+  "AEGIS_SDKDNS_EXE": "C:/Apps/SDKDNS/SDKDNS.exe",
+  "AEGIS_OKWW_EXE": ""
+}

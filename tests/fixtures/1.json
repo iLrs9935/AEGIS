@@ -1,0 +1,1683 @@
+{
+  "meta": {
+    "theme": "Command Terminal",
+    "edge_style": "circuit"
+  },
+  "nodes": [
+    {
+      "id": "cdkey-crawler",
+      "type": "通用网页嗅探",
+      "name": "每日检查新兑换码",
+      "category": "网络与侦察",
+      "display_mode": "standard",
+      "x": -1380,
+      "y": -350,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "TapTap 鸣潮兑换码",
+        "目标URL": "https://example.com/codes",
+        "触发关键词(可不填)": "兑换码",
+        "正则特征": "\\b(?!USER)(?=[A-Z0-9]{8,20}\\b)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{8,20}\\b",
+        "最大下潜页数": "10",
+        "记忆账本键名": "mingchao_cdkeys",
+        "结果存入全局变量": "cdkeys_array"
+      },
+      "signal_config": {
+        "outputs": {
+          "有待兑换": {
+            "value": ""
+          },
+          "没有待兑换": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "game-start",
+      "type": "启动程序",
+      "name": "启动鸣潮并等待一分钟",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": -840,
+      "y": -380,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "程序路径": "C:/Games/Example/Game.exe",
+        "启动参数": "",
+        "等待启动(s)": "60"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "array",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "vision-1",
+      "type": "视觉寻图",
+      "name": "① 寻找“点击连接”",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": -570,
+      "y": -380,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "后台(静默寻图)",
+        "节点标签": "进入游戏",
+        "窗口标题": "鸣潮",
+        "图片路径": "images/cdkey_process/1.png",
+        "置信度": "0.72",
+        "灰度匹配": "是",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": 20,
+        "重试间隔(s)": "3.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "router-1",
+      "type": "信号分流器",
+      "name": "① 判断连接按钮",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": -310,
+      "y": -380,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "连接按钮判定",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到目标",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到目标": {
+            "value": ""
+          },
+          "未找到": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "click-1",
+      "type": "物理点击",
+      "name": "① 点击连接",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": -50,
+      "y": -380,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台物理(真实鼠标)",
+        "点击按键": "left",
+        "点击动作": "单击",
+        "操作前延迟(s)": "0.3",
+        "节点标签": "点击连接"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "wait-main",
+      "type": "等待时间",
+      "name": "等待主界面稳定",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 210,
+      "y": -380,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "10"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "press-esc",
+      "type": "键盘操作",
+      "name": "按 ESC 打开终端",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": 470,
+      "y": -380,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "操作类型": "敲击单键",
+        "输入方式": "后台消息(PostMessage)",
+        "目标窗口标题(后台消息)": "鸣潮",
+        "按键名(如 F/SPACE/ENTER) 或 文本": "ESC",
+        "按压时长(s)": "0.05",
+        "操作前延迟(s)": "0.3"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "vision-2",
+      "type": "视觉寻图",
+      "name": "② 寻找设置齿轮",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": -840,
+      "y": -150,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "后台(静默寻图)",
+        "节点标签": "设置齿轮",
+        "窗口标题": "鸣潮",
+        "图片路径": "images/cdkey_process/2.png",
+        "置信度": "0.72",
+        "灰度匹配": "是",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": 10,
+        "重试间隔(s)": "1.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "router-2",
+      "type": "信号分流器",
+      "name": "② 判断设置齿轮",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": -580,
+      "y": -150,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "设置齿轮判定",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到目标",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到目标": {
+            "value": ""
+          },
+          "未找到": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "click-2",
+      "type": "物理点击",
+      "name": "② 点击设置齿轮",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": -320,
+      "y": -150,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台物理(真实鼠标)",
+        "点击按键": "left",
+        "点击动作": "单击",
+        "操作前延迟(s)": "0.3",
+        "节点标签": "点击设置齿轮"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "vision-3",
+      "type": "视觉寻图",
+      "name": "③ 寻找其他设置",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": -60,
+      "y": -150,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "后台(静默寻图)",
+        "节点标签": "其他设置",
+        "窗口标题": "鸣潮",
+        "图片路径": "images/cdkey_process/3.png",
+        "置信度": "0.70",
+        "灰度匹配": "是",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": 10,
+        "重试间隔(s)": "1.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "router-3",
+      "type": "信号分流器",
+      "name": "③ 判断其他设置",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": 200,
+      "y": -150,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "其他设置判定",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到目标",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到目标": {
+            "value": ""
+          },
+          "未找到": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "click-3",
+      "type": "物理点击",
+      "name": "③ 点击其他设置",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": 460,
+      "y": -150,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台物理(真实鼠标)",
+        "点击按键": "left",
+        "点击动作": "单击",
+        "操作前延迟(s)": "0.3",
+        "节点标签": "点击其他设置"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "vision-4",
+      "type": "视觉寻图",
+      "name": "④ 寻找界面设置",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": -840,
+      "y": 80,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "后台(静默寻图)",
+        "节点标签": "界面设置",
+        "窗口标题": "鸣潮",
+        "图片路径": "images/cdkey_process/4.png",
+        "置信度": "0.72",
+        "灰度匹配": "是",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": 10,
+        "重试间隔(s)": "1.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "router-4",
+      "type": "信号分流器",
+      "name": "④ 判断界面设置",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": -580,
+      "y": 80,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "界面设置判定",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到目标",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到目标": {
+            "value": ""
+          },
+          "未找到": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "click-4",
+      "type": "物理点击",
+      "name": "④ 点击界面设置",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": -320,
+      "y": 80,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台物理(真实鼠标)",
+        "点击按键": "left",
+        "点击动作": "单击",
+        "操作前延迟(s)": "0.3",
+        "节点标签": "点击界面设置"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "scroll-down",
+      "type": "持续滚轮",
+      "name": "向下滚动 5 秒",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": -60,
+      "y": 80,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "滚动方向": "向下",
+        "持续时长(s)": "5",
+        "操作前延迟(s)": "0.5"
+      },
+      "signal_config": {
+        "outputs": {
+          "滚动完成": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "code-iterator",
+      "type": "数组遍历器",
+      "name": "逐条取出待兑换码",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": -840,
+      "y": 410,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "待兑换队列",
+        "目标数组变量名": "cdkeys_array",
+        "当前元素存入变量": "current_cdkey"
+      },
+      "signal_config": {
+        "outputs": {
+          "弹出元素(继续)": {
+            "value": ""
+          },
+          "队列为空(完成)": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "vision-5",
+      "type": "视觉寻图",
+      "name": "⑤ 寻找兑换按钮",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": -570,
+      "y": 410,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "后台(静默寻图)",
+        "节点标签": "兑换按钮",
+        "窗口标题": "鸣潮",
+        "图片路径": "images/cdkey_process/5.png",
+        "置信度": "0.72",
+        "灰度匹配": "是",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": 10,
+        "重试间隔(s)": "1.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "router-5",
+      "type": "信号分流器",
+      "name": "⑤ 判断兑换按钮",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": -310,
+      "y": 410,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "兑换按钮判定",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到目标",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到目标": {
+            "value": ""
+          },
+          "未找到": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "click-5",
+      "type": "物理点击",
+      "name": "⑤ 点击兑换",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": -50,
+      "y": 410,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台物理(真实鼠标)",
+        "点击按键": "left",
+        "点击动作": "单击",
+        "操作前延迟(s)": "0.3",
+        "节点标签": "点击兑换"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "vision-6",
+      "type": "视觉寻图",
+      "name": "⑥ 寻找完整输入框文字",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": 210,
+      "y": 410,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "后台(静默寻图)",
+        "节点标签": "完整的请输入兑换码文字",
+        "窗口标题": "鸣潮",
+        "图片路径": "images/cdkey_process/6.1.png",
+        "置信度": "0.75",
+        "灰度匹配": "是",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": 10,
+        "重试间隔(s)": "1.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "router-6",
+      "type": "信号分流器",
+      "name": "⑥ 判断输入框",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": 480,
+      "y": 410,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "兑换码输入框判定",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到目标",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到目标": {
+            "value": ""
+          },
+          "未找到": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "click-6",
+      "type": "物理点击",
+      "name": "⑥ 点击输入框",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": 740,
+      "y": 410,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台物理(真实鼠标)",
+        "点击按键": "left",
+        "点击动作": "单击",
+        "操作前延迟(s)": "0.3",
+        "节点标签": "点击兑换码输入框"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "clear-input",
+      "type": "键盘操作",
+      "name": "清空输入框",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": -840,
+      "y": 640,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "操作类型": "敲击单键",
+        "输入方式": "后台消息(PostMessage)",
+        "目标窗口标题(后台消息)": "鸣潮",
+        "按键名(如 F/SPACE/ENTER) 或 文本": "CTRL+A",
+        "按压时长(s)": "0.05",
+        "操作前延迟(s)": "0.2"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "paste-code",
+      "type": "动态变量粘贴",
+      "name": "粘贴当前兑换码",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": -580,
+      "y": 640,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "粘贴当前兑换码",
+        "读取变量名": "current_cdkey",
+        "输入方式": "后台消息(PostMessage)",
+        "目标窗口标题(后台消息)": "鸣潮",
+        "操作前延迟(s)": "0.2"
+      },
+      "signal_config": {
+        "outputs": {
+          "已粘贴": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "vision-7",
+      "type": "视觉寻图",
+      "name": "⑦ 寻找确认按钮",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": -320,
+      "y": 640,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "后台(静默寻图)",
+        "节点标签": "确认按钮",
+        "窗口标题": "鸣潮",
+        "图片路径": "images/cdkey_process/7.png",
+        "置信度": "0.72",
+        "灰度匹配": "是",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": 10,
+        "重试间隔(s)": "1.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "router-7",
+      "type": "信号分流器",
+      "name": "⑦ 判断确认按钮",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": -60,
+      "y": 640,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "确认按钮判定",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到目标",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到目标": {
+            "value": ""
+          },
+          "未找到": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "click-7",
+      "type": "物理点击",
+      "name": "⑦ 点击确认",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": 200,
+      "y": 640,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台物理(真实鼠标)",
+        "点击按键": "left",
+        "点击动作": "单击",
+        "操作前延迟(s)": "0.3",
+        "节点标签": "点击确认"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "wait-submit",
+      "type": "等待时间",
+      "name": "等待提交完成",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 460,
+      "y": 640,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "3"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "vision-cancel",
+      "type": "视觉寻图",
+      "name": "⑧ 提交三秒后寻找取消",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": 720,
+      "y": 840,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "后台(静默寻图)",
+        "节点标签": "提交结果中的取消按钮",
+        "窗口标题": "鸣潮",
+        "图片路径": "images/cdkey_process/7.1.png",
+        "置信度": "0.78",
+        "灰度匹配": "是",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": 10,
+        "重试间隔(s)": "0.6"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "router-cancel",
+      "type": "信号分流器",
+      "name": "⑧ 判断取消按钮",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": 980,
+      "y": 840,
+      "w": 210,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "取消按钮判定",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到取消",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到取消",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到取消": {
+            "value": ""
+          },
+          "未找到取消": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "click-cancel",
+      "type": "物理点击",
+      "name": "⑧ 点击取消返回兑换界面",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": 1240,
+      "y": 840,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "前台物理(真实鼠标)",
+        "点击按键": "left",
+        "点击动作": "单击",
+        "操作前延迟(s)": "0.3",
+        "节点标签": "点击提交结果中的取消"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "record-code",
+      "type": "记录兑换码结果",
+      "name": "记为已使用并继续下一条",
+      "category": "网络与侦察",
+      "display_mode": "standard",
+      "x": 1240,
+      "y": 700,
+      "w": 230,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "兑换码已使用",
+        "记忆账本键名": "mingchao_cdkeys",
+        "当前兑换码兼容变量": "current_cdkey",
+        "处理结果": "已使用"
+      },
+      "signal_config": {
+        "outputs": {
+          "继续下一个": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "close-success",
+      "type": "结束进程",
+      "name": "全部完成后关闭鸣潮",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1580,
+      "y": 410,
+      "w": 230,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "兑换码全部处理完成",
+        "目标模式": "按窗口标题(智能关闭)",
+        "目标名称(如 鸣潮 或 ok-ww.exe)": "鸣潮",
+        "执行方式(针对窗口)": "优雅关闭(发WM_CLOSE)"
+      },
+      "signal_config": {
+        "outputs": {
+          "已清理": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "close-failure",
+      "type": "结束进程",
+      "name": "视觉失败时关闭鸣潮",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1580,
+      "y": -150,
+      "w": 230,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "兑换流程视觉失败",
+        "目标模式": "按窗口标题(智能关闭)",
+        "目标名称(如 鸣潮 或 ok-ww.exe)": "鸣潮",
+        "执行方式(针对窗口)": "优雅关闭(发WM_CLOSE)"
+      },
+      "signal_config": {
+        "outputs": {
+          "已清理": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    }
+  ],
+  "groups": [
+    {
+      "id": "group-discovery",
+      "name": "A · 每日增量检查（无码不启动游戏）",
+      "x": -1450,
+      "y": -430,
+      "w": 330,
+      "h": 220,
+      "is_disabled": false,
+      "is_collapsed": false,
+      "is_locked": true,
+      "color": "#22C55E",
+      "member_ids": [
+        "cdkey-crawler"
+      ]
+    },
+    {
+      "id": "group-navigation",
+      "name": "B · 启动鸣潮并导航到兑换设置",
+      "x": -900,
+      "y": -460,
+      "w": 1660,
+      "h": 750,
+      "is_disabled": false,
+      "is_collapsed": false,
+      "is_locked": true,
+      "color": "#3B82F6",
+      "member_ids": [
+        "game-start",
+        "vision-1",
+        "router-1",
+        "click-1",
+        "wait-main",
+        "press-esc",
+        "vision-2",
+        "router-2",
+        "click-2",
+        "vision-3",
+        "router-3",
+        "click-3",
+        "vision-4",
+        "router-4",
+        "click-4",
+        "scroll-down"
+      ]
+    },
+    {
+      "id": "group-loop",
+      "name": "C · 逐条兑换与事务记忆闭环",
+      "x": -900,
+      "y": 330,
+      "w": 2400,
+      "h": 620,
+      "is_disabled": false,
+      "is_collapsed": false,
+      "is_locked": true,
+      "color": "#A855F7",
+      "member_ids": [
+        "code-iterator",
+        "vision-5",
+        "router-5",
+        "click-5",
+        "vision-6",
+        "router-6",
+        "click-6",
+        "clear-input",
+        "paste-code",
+        "vision-7",
+        "router-7",
+        "click-7",
+        "wait-submit",
+        "vision-cancel",
+        "router-cancel",
+        "click-cancel",
+        "record-code"
+      ]
+    },
+    {
+      "id": "group-cleanup",
+      "name": "D · 完成或失败后的安全清理",
+      "x": 1530,
+      "y": -240,
+      "w": 340,
+      "h": 770,
+      "is_disabled": false,
+      "is_collapsed": false,
+      "is_locked": true,
+      "color": "#F97316",
+      "member_ids": [
+        "close-success",
+        "close-failure"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "src_id": "cdkey-crawler",
+      "src_port": "有待兑换",
+      "tgt_id": "game-start",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "game-start",
+      "src_port": "OUT",
+      "tgt_id": "vision-1",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "vision-1",
+      "src_port": "OUT",
+      "tgt_id": "router-1",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-1",
+      "src_port": "找到目标",
+      "tgt_id": "click-1",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "click-1",
+      "src_port": "OUT",
+      "tgt_id": "wait-main",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "wait-main",
+      "src_port": "OUT",
+      "tgt_id": "press-esc",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "press-esc",
+      "src_port": "OUT",
+      "tgt_id": "vision-2",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "vision-2",
+      "src_port": "OUT",
+      "tgt_id": "router-2",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-2",
+      "src_port": "找到目标",
+      "tgt_id": "click-2",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "click-2",
+      "src_port": "OUT",
+      "tgt_id": "vision-3",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "vision-3",
+      "src_port": "OUT",
+      "tgt_id": "router-3",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-3",
+      "src_port": "找到目标",
+      "tgt_id": "click-3",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "click-3",
+      "src_port": "OUT",
+      "tgt_id": "vision-4",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "vision-4",
+      "src_port": "OUT",
+      "tgt_id": "router-4",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-4",
+      "src_port": "找到目标",
+      "tgt_id": "click-4",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "click-4",
+      "src_port": "OUT",
+      "tgt_id": "scroll-down",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "scroll-down",
+      "src_port": "滚动完成",
+      "tgt_id": "code-iterator",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "code-iterator",
+      "src_port": "弹出元素(继续)",
+      "tgt_id": "vision-5",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "vision-5",
+      "src_port": "OUT",
+      "tgt_id": "router-5",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-5",
+      "src_port": "找到目标",
+      "tgt_id": "click-5",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "click-5",
+      "src_port": "OUT",
+      "tgt_id": "vision-6",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "vision-6",
+      "src_port": "OUT",
+      "tgt_id": "router-6",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-6",
+      "src_port": "找到目标",
+      "tgt_id": "click-6",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "click-6",
+      "src_port": "OUT",
+      "tgt_id": "clear-input",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "clear-input",
+      "src_port": "OUT",
+      "tgt_id": "paste-code",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "paste-code",
+      "src_port": "已粘贴",
+      "tgt_id": "vision-7",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "vision-7",
+      "src_port": "OUT",
+      "tgt_id": "router-7",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-7",
+      "src_port": "找到目标",
+      "tgt_id": "click-7",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "click-7",
+      "src_port": "OUT",
+      "tgt_id": "wait-submit",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "wait-submit",
+      "src_port": "OUT",
+      "tgt_id": "vision-cancel",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "vision-cancel",
+      "src_port": "OUT",
+      "tgt_id": "router-cancel",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-cancel",
+      "src_port": "找到取消",
+      "tgt_id": "click-cancel",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "click-cancel",
+      "src_port": "OUT",
+      "tgt_id": "record-code",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-cancel",
+      "src_port": "未找到取消",
+      "tgt_id": "close-failure",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "code-iterator",
+      "src_port": "队列为空(完成)",
+      "tgt_id": "close-success",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-1",
+      "src_port": "未找到",
+      "tgt_id": "close-failure",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-2",
+      "src_port": "未找到",
+      "tgt_id": "close-failure",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-3",
+      "src_port": "未找到",
+      "tgt_id": "close-failure",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-4",
+      "src_port": "未找到",
+      "tgt_id": "close-failure",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-5",
+      "src_port": "未找到",
+      "tgt_id": "close-failure",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-6",
+      "src_port": "未找到",
+      "tgt_id": "close-failure",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "router-7",
+      "src_port": "未找到",
+      "tgt_id": "close-failure",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "record-code",
+      "src_port": "继续下一个",
+      "tgt_id": "code-iterator",
+      "tgt_port": "IN"
+    }
+  ]
+}

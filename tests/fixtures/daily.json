@@ -1,0 +1,1424 @@
+{
+  "meta": {
+    "theme": "Command Terminal",
+    "edge_style": "circuit",
+    "unattended_policy_version": 5
+  },
+  "nodes": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "type": "OK-WW监控初始化",
+      "name": "OK-WW安全预检",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": -700,
+      "y": -80,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "OK-WW安全预检",
+        "OK-WW程序路径": "C:/Apps/ok-ww/ok-ww.exe",
+        "OK-WW主脚本路径": "C:/Apps/ok-ww/data/apps/ok-ww/working/main.py",
+        "OK-WW日志目录": "C:/Apps/ok-ww/logs",
+        "OK-WW内部日志目录": "C:/Apps/ok-ww/data/apps/ok-ww/working/logs",
+        "鸣潮进程名": "Client-Win64-Shipping.exe",
+        "最大尝试次数": "3",
+        "OK-WW Python路径": "C:/Apps/ok-ww/data/apps/ok-ww/python/pythonw.exe",
+        "最大更新重启次数": "3"
+      },
+      "signal_config": {
+        "outputs": {
+          "允许启动": {
+            "value": ""
+          },
+          "环境占用": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "type": "启动程序",
+      "name": "启动每日任务",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": -450,
+      "y": -80,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "程序路径": "C:/Games/Example/Game.exe",
+        "启动参数": "-t 1 -e",
+        "已运行时": "跳过重复启动",
+        "等待启动(s)": "15",
+        "OK-WW更新后恢复启动": "是"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000004",
+      "type": "视觉寻图",
+      "name": "检查游戏更新",
+      "category": "视觉",
+      "display_mode": "standard",
+      "x": 100,
+      "y": -80,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行模式": "后台(静默寻图)",
+        "节点标签": "更新检测",
+        "窗口标题": "鸣潮",
+        "图片路径": "images/鸣潮自运行/update_notification.png",
+        "置信度": "0.85",
+        "灰度匹配": "是",
+        "匹配策略": "最高置信度",
+        "目标序号(第几个)": "1",
+        "重试次数": "1",
+        "重试间隔(s)": "1.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000005",
+      "type": "信号分流器",
+      "name": "是否检测到更新",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": 370,
+      "y": -80,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "更新结果分流",
+        "输入选择": "最后一个",
+        "匹配模式": "首个匹配",
+        "路由规则": [
+          {
+            "port": "找到目标",
+            "path": "found",
+            "operator": "等于",
+            "target": "true"
+          },
+          {
+            "port": "未找到",
+            "path": "found",
+            "operator": "等于",
+            "target": "false"
+          }
+        ],
+        "未匹配时": "终止工作流",
+        "默认出口名称": "默认"
+      },
+      "signal_config": {
+        "outputs": {
+          "找到目标": {
+            "value": ""
+          },
+          "未找到": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000006",
+      "type": "OK-WW任务监控",
+      "name": "官方日志真值监控",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": -170,
+      "y": -80,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "OK-WW每日任务监控",
+        "轮询间隔(s)": "15",
+        "启动宽限(s)": "180",
+        "退出日志宽限(s)": "20",
+        "单次超时(s)": "7200",
+        "总超时(s)": "21600",
+        "更新界面检查间隔(轮询次数)": "4",
+        "启动器更新宽限(s)": "900",
+        "更新后启动宽限(s)": "90",
+        "游戏退出宽限(s)": "60"
+      },
+      "signal_config": {
+        "outputs": {
+          "运行中": {
+            "value": ""
+          },
+          "检查更新界面": {
+            "value": ""
+          },
+          "更新后重启": {
+            "value": ""
+          },
+          "成功": {
+            "value": ""
+          },
+          "失败可重试": {
+            "value": ""
+          },
+          "最终失败": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000010",
+      "type": "可靠Bark通知",
+      "name": "已有进程：告警",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": -450,
+      "y": -260,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 已停止接管",
+        "通知内容模板": "{summary}。未启动新任务，也不会休眠。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "critical",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "type": "系统休眠",
+      "name": "已有进程：保留终端",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": -170,
+      "y": -260,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行前倒计时(s)": "5",
+        "执行动作": "保留终端(不休眠)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000020",
+      "type": "OK-WW安全清理",
+      "name": "更新分支：安全清理",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 580,
+      "y": -420,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "检测更新后的会话清理",
+        "确认超时(s)": "20"
+      },
+      "signal_config": {
+        "outputs": {
+          "已清理": {
+            "value": ""
+          },
+          "清理失败": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000021",
+      "type": "可靠Bark通知",
+      "name": "检测更新：告警",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 850,
+      "y": -450,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 游戏需要更新",
+        "通知内容模板": "检测到鸣潮更新界面，自动任务已停止且进程清理已复核。 保留终端，不休眠，请人工确认更新。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "critical",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000022",
+      "type": "系统休眠",
+      "name": "更新分支：保留终端",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1120,
+      "y": -450,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行前倒计时(s)": "5",
+        "执行动作": "保留终端(不休眠)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000023",
+      "type": "可靠Bark通知",
+      "name": "更新清理失败：告警",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 850,
+      "y": -350,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 清理失败",
+        "通知内容模板": "{summary}。为避免误操作，本机保持唤醒。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "critical",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000024",
+      "type": "系统休眠",
+      "name": "更新清理失败：保留终端",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1120,
+      "y": -350,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行前倒计时(s)": "5",
+        "执行动作": "保留终端(不休眠)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000030",
+      "type": "OK-WW安全清理",
+      "name": "成功分支：安全清理",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 850,
+      "y": 80,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "成功后的会话清理",
+        "确认超时(s)": "20"
+      },
+      "signal_config": {
+        "outputs": {
+          "已清理": {
+            "value": ""
+          },
+          "清理失败": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000031",
+      "type": "可靠Bark通知",
+      "name": "任务成功：通知",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 1120,
+      "y": 50,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 每日任务完成",
+        "通知内容模板": "第 {attempt}/{max_attempts} 次成功：{summary}；进程清理已复核。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "active",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000032",
+      "type": "系统休眠",
+      "name": "成功分支：休眠",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1390,
+      "y": 50,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行前倒计时(s)": "60",
+        "执行动作": "S4休眠并退出终端",
+        "休眠前校验": "本次OK-WW成功且清理完成"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000033",
+      "type": "可靠Bark通知",
+      "name": "成功但清理失败：告警",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 1120,
+      "y": 150,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 收尾失败",
+        "通知内容模板": "{summary}。为避免误操作，本机保持唤醒。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "critical",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000034",
+      "type": "系统休眠",
+      "name": "成功清理失败：保留终端",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1390,
+      "y": 150,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行前倒计时(s)": "5",
+        "执行动作": "保留终端(不休眠)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000040",
+      "type": "可靠Bark通知",
+      "name": "异常重试：通知",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 850,
+      "y": 260,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 每日任务将重试",
+        "通知内容模板": "第 {attempt}/{max_attempts} 次失败：{summary}。清理后自动重试。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "timeSensitive",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000041",
+      "type": "OK-WW安全清理",
+      "name": "重试前：安全清理",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 1120,
+      "y": 260,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "重试前会话清理",
+        "确认超时(s)": "20"
+      },
+      "signal_config": {
+        "outputs": {
+          "已清理": {
+            "value": ""
+          },
+          "清理失败": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000042",
+      "type": "等待时间",
+      "name": "重试冷却 60 秒",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 1390,
+      "y": 230,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "60"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000043",
+      "type": "可靠Bark通知",
+      "name": "重试清理失败：告警",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 1390,
+      "y": 330,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 无法安全重试",
+        "通知内容模板": "{summary}。自动重试已停止，本机保持唤醒。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "critical",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000044",
+      "type": "系统休眠",
+      "name": "重试清理失败：保留终端",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1660,
+      "y": 330,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行前倒计时(s)": "5",
+        "执行动作": "保留终端(不休眠)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000050",
+      "type": "OK-WW安全清理",
+      "name": "最终失败：安全清理",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 850,
+      "y": 470,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "最终失败后的会话清理",
+        "确认超时(s)": "20"
+      },
+      "signal_config": {
+        "outputs": {
+          "已清理": {
+            "value": ""
+          },
+          "清理失败": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000051",
+      "type": "可靠Bark通知",
+      "name": "最终失败：告警",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 1120,
+      "y": 440,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 每日任务最终失败",
+        "通知内容模板": "已尝试 {attempt}/{max_attempts} 次：{summary}。会话已安全清理。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "critical",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000052",
+      "type": "系统休眠",
+      "name": "最终失败：保留终端",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1390,
+      "y": 440,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行前倒计时(s)": "5",
+        "执行动作": "保留终端(不休眠)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000053",
+      "type": "可靠Bark通知",
+      "name": "最终清理失败：告警",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 1120,
+      "y": 540,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 最终清理失败",
+        "通知内容模板": "{summary}。本机保持唤醒，请人工检查。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "critical",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000054",
+      "type": "系统休眠",
+      "name": "最终清理失败：保留终端",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1390,
+      "y": 540,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行前倒计时(s)": "5",
+        "执行动作": "保留终端(不休眠)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000060",
+      "type": "可靠Bark通知",
+      "name": "热更新完成：通知",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 100,
+      "y": -620,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 游戏热更新完成",
+        "通知内容模板": "第 {attempt}/{max_attempts} 次执行已完成游戏热更新，等待 OK-WW 重启后继续；本次不计失败。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "timeSensitive",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000061",
+      "type": "等待时间",
+      "name": "等待 OK-WW 自行退出 75 秒",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 370,
+      "y": -620,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "75"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000062",
+      "type": "OK-WW安全清理",
+      "name": "更新重启前：安全清理",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 640,
+      "y": -620,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "更新重启前会话清理",
+        "确认超时(s)": "20"
+      },
+      "signal_config": {
+        "outputs": {
+          "已清理": {
+            "value": ""
+          },
+          "清理失败": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000063",
+      "type": "等待时间",
+      "name": "更新后冷却 105 秒",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 910,
+      "y": -670,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "105"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000064",
+      "type": "可靠Bark通知",
+      "name": "更新重启清理失败：告警",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 910,
+      "y": -570,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "https://api.day.app/test-key",
+        "通知标题模板": "AEGIS · 更新重启清理失败",
+        "通知内容模板": "{summary}。为避免误杀其他进程，本轮已停止且不会休眠。",
+        "消息分组": "AEGIS无人值守",
+        "通知级别": "critical",
+        "发送尝试次数": "3",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "10",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000065",
+      "type": "系统休眠",
+      "name": "更新重启清理失败：保留终端",
+      "category": "系统",
+      "display_mode": "standard",
+      "x": 1180,
+      "y": -570,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "执行前倒计时(s)": "5",
+        "执行动作": "保留终端(不休眠)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    }
+  ],
+  "groups": [
+    {
+      "id": "20000000-0000-4000-8000-000000000001",
+      "name": "安全启动与更新预检",
+      "x": -770,
+      "y": -330,
+      "w": 1260,
+      "h": 480,
+      "is_disabled": false,
+      "is_collapsed": false,
+      "is_locked": true,
+      "color": "#4488ff",
+      "member_ids": [
+        "10000000-0000-4000-8000-000000000001",
+        "10000000-0000-4000-8000-000000000002",
+        "10000000-0000-4000-8000-000000000003",
+        "10000000-0000-4000-8000-000000000004",
+        "10000000-0000-4000-8000-000000000005",
+        "10000000-0000-4000-8000-000000000010",
+        "10000000-0000-4000-8000-000000000011"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000002",
+      "name": "OK-WW 官方日志真值监控",
+      "x": 510,
+      "y": -170,
+      "w": 280,
+      "h": 220,
+      "is_disabled": false,
+      "is_collapsed": false,
+      "is_locked": true,
+      "color": "#28c76f",
+      "member_ids": [
+        "10000000-0000-4000-8000-000000000006"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000003",
+      "name": "更新检测兜底",
+      "x": 510,
+      "y": -510,
+      "w": 870,
+      "h": 260,
+      "is_disabled": false,
+      "is_collapsed": false,
+      "is_locked": true,
+      "color": "#ff9f43",
+      "member_ids": [
+        "10000000-0000-4000-8000-000000000020",
+        "10000000-0000-4000-8000-000000000021",
+        "10000000-0000-4000-8000-000000000022",
+        "10000000-0000-4000-8000-000000000023",
+        "10000000-0000-4000-8000-000000000024"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000004",
+      "name": "成功、重试与最终失败收尾",
+      "x": 790,
+      "y": -10,
+      "w": 1100,
+      "h": 680,
+      "is_disabled": false,
+      "is_collapsed": false,
+      "is_locked": true,
+      "color": "#7367f0",
+      "member_ids": [
+        "10000000-0000-4000-8000-000000000030",
+        "10000000-0000-4000-8000-000000000031",
+        "10000000-0000-4000-8000-000000000032",
+        "10000000-0000-4000-8000-000000000033",
+        "10000000-0000-4000-8000-000000000034",
+        "10000000-0000-4000-8000-000000000040",
+        "10000000-0000-4000-8000-000000000041",
+        "10000000-0000-4000-8000-000000000042",
+        "10000000-0000-4000-8000-000000000043",
+        "10000000-0000-4000-8000-000000000044",
+        "10000000-0000-4000-8000-000000000050",
+        "10000000-0000-4000-8000-000000000051",
+        "10000000-0000-4000-8000-000000000052",
+        "10000000-0000-4000-8000-000000000053",
+        "10000000-0000-4000-8000-000000000054"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "src_id": "10000000-0000-4000-8000-000000000001",
+      "src_port": "允许启动",
+      "tgt_id": "10000000-0000-4000-8000-000000000002",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000001",
+      "src_port": "环境占用",
+      "tgt_id": "10000000-0000-4000-8000-000000000010",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000010",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000011",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000002",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000006",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000006",
+      "src_port": "检查更新界面",
+      "tgt_id": "10000000-0000-4000-8000-000000000004",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000004",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000005",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000005",
+      "src_port": "找到目标",
+      "tgt_id": "10000000-0000-4000-8000-000000000020",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000020",
+      "src_port": "已清理",
+      "tgt_id": "10000000-0000-4000-8000-000000000021",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000020",
+      "src_port": "清理失败",
+      "tgt_id": "10000000-0000-4000-8000-000000000023",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000021",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000022",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000023",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000024",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000006",
+      "src_port": "成功",
+      "tgt_id": "10000000-0000-4000-8000-000000000030",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000030",
+      "src_port": "已清理",
+      "tgt_id": "10000000-0000-4000-8000-000000000031",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000030",
+      "src_port": "清理失败",
+      "tgt_id": "10000000-0000-4000-8000-000000000033",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000031",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000032",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000033",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000034",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000006",
+      "src_port": "失败可重试",
+      "tgt_id": "10000000-0000-4000-8000-000000000040",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000040",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000041",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000041",
+      "src_port": "已清理",
+      "tgt_id": "10000000-0000-4000-8000-000000000042",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000041",
+      "src_port": "清理失败",
+      "tgt_id": "10000000-0000-4000-8000-000000000043",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000043",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000044",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000006",
+      "src_port": "最终失败",
+      "tgt_id": "10000000-0000-4000-8000-000000000050",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000050",
+      "src_port": "已清理",
+      "tgt_id": "10000000-0000-4000-8000-000000000051",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000050",
+      "src_port": "清理失败",
+      "tgt_id": "10000000-0000-4000-8000-000000000053",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000051",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000052",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000053",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000054",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000006",
+      "src_port": "更新后重启",
+      "tgt_id": "10000000-0000-4000-8000-000000000060",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000060",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000061",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000061",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000062",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000062",
+      "src_port": "已清理",
+      "tgt_id": "10000000-0000-4000-8000-000000000063",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000062",
+      "src_port": "清理失败",
+      "tgt_id": "10000000-0000-4000-8000-000000000064",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000064",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000065",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000005",
+      "src_port": "未找到",
+      "tgt_id": "10000000-0000-4000-8000-000000000006",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000006",
+      "src_port": "运行中",
+      "tgt_id": "10000000-0000-4000-8000-000000000006",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000042",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000001",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "10000000-0000-4000-8000-000000000063",
+      "src_port": "OUT",
+      "tgt_id": "10000000-0000-4000-8000-000000000001",
+      "tgt_port": "IN"
+    }
+  ]
+}

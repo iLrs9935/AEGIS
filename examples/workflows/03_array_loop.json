@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "theme": "Command Terminal",
+    "edge_style": "curve"
+  },
+  "nodes": [
+    {
+      "id": "source",
+      "type": "等待时间",
+      "name": "提供三个数组元素",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 0,
+      "y": 0,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": "[\"alpha\",\"beta\",\"gamma\"]"
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "iterator",
+      "type": "数组遍历器",
+      "name": "逐个取出元素",
+      "category": "逻辑",
+      "display_mode": "standard",
+      "x": 280,
+      "y": 0,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "数组遍历",
+        "目标数组变量名": "example_items",
+        "当前元素存入变量": "current_item"
+      },
+      "signal_config": {
+        "outputs": {
+          "弹出元素(继续)": {
+            "value": ""
+          },
+          "队列为空(完成)": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "show",
+      "type": "文本展示",
+      "name": "显示当前元素",
+      "category": "文本",
+      "display_mode": "standard",
+      "x": 560,
+      "y": 0,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "只读展示板",
+        "读取变量名": "current_item",
+        "展示内容": ""
+      },
+      "signal_config": {
+        "outputs": {
+          "通过": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "done",
+      "type": "文本输入",
+      "name": "遍历完成",
+      "category": "文本",
+      "display_mode": "standard",
+      "x": 280,
+      "y": 220,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "文本输入",
+        "文本内容": "三个元素均已处理",
+        "存入变量名": "loop_result"
+      },
+      "signal_config": {
+        "outputs": {
+          "文本输出": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    }
+  ],
+  "groups": [],
+  "edges": [
+    {
+      "src_id": "source",
+      "src_port": "OUT",
+      "tgt_id": "iterator",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "iterator",
+      "src_port": "弹出元素(继续)",
+      "tgt_id": "show",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "iterator",
+      "src_port": "队列为空(完成)",
+      "tgt_id": "done",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "show",
+      "src_port": "通过",
+      "tgt_id": "iterator",
+      "tgt_port": "IN"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "theme": "Command Terminal",
+    "edge_style": "curve"
+  },
+  "nodes": [
+    {
+      "id": "source",
+      "type": "等待时间",
+      "name": "模拟任务完成",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 0,
+      "y": 0,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": "{\"state\":\"success\",\"attempt\":1,\"max_attempts\":1,\"summary\":\"示例工作流已完成\"}"
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "bark",
+      "type": "可靠Bark通知",
+      "name": "发送配置好的 Bark 通知",
+      "category": "OK-WW",
+      "display_mode": "standard",
+      "x": 280,
+      "y": 0,
+      "w": 190,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "Bark推送地址": "${ENV:AEGIS_BARK_URL}",
+        "通知标题模板": "AEGIS · {state}",
+        "通知内容模板": "第 {attempt}/{max_attempts} 次：{summary}",
+        "消息分组": "AEGIS示例",
+        "通知级别": "active",
+        "发送尝试次数": "1",
+        "重试间隔(s)": "2",
+        "请求超时(s)": "5",
+        "离线队列目录": "自动(程序目录/alerts/pending)"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    }
+  ],
+  "groups": [],
+  "edges": [
+    {
+      "src_id": "source",
+      "src_port": "OUT",
+      "tgt_id": "bark",
+      "tgt_port": "IN"
+    }
+  ]
+}

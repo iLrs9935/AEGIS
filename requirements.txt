@@ -1,0 +1,11 @@
+# Windows, Python 3.12-3.14. Versions used for the release review.
+PyQt6==6.11.0
+networkx==3.6.1
+numpy==2.4.4
+opencv-python==4.13.0.92
+Pillow==12.2.0
+PyAutoGUI==0.9.54
+pywin32==311; sys_platform == "win32"
+pydantic==2.13.3
+selenium==4.43.0
+webdriver-manager==4.0.2

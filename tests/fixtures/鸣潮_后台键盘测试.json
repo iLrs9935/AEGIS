@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "theme": "Command Terminal",
+    "edge_style": "circuit"
+  },
+  "nodes": [
+    {
+      "id": "check-wuthering-waves",
+      "type": "状态检测",
+      "name": "确认鸣潮已经开启",
+      "category": "触发",
+      "display_mode": "standard",
+      "x": -650,
+      "y": 0,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "节点标签": "鸣潮窗口检测",
+        "检测模式": "按窗口标题",
+        "目标名称": "鸣潮"
+      },
+      "signal_config": {
+        "outputs": {
+          "已运行": {
+            "value": ""
+          },
+          "未运行": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": false
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "walk-forward",
+      "type": "键盘操作",
+      "name": "按住 W 前进 1.5 秒",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": -360,
+      "y": 0,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "操作类型": "敲击单键",
+        "输入方式": "后台消息(PostMessage)",
+        "目标窗口标题(后台消息)": "鸣潮",
+        "按键名(如 F/SPACE/ENTER) 或 文本": "W",
+        "按压时长(s)": "1.5",
+        "操作前延迟(s)": "0.5"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "wait-after-walk",
+      "type": "等待时间",
+      "name": "等待角色停稳",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": -70,
+      "y": 0,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "0.8"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "open-menu",
+      "type": "键盘操作",
+      "name": "按 ESC 打开菜单",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": 200,
+      "y": 0,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "操作类型": "敲击单键",
+        "输入方式": "后台消息(PostMessage)",
+        "目标窗口标题(后台消息)": "鸣潮",
+        "按键名(如 F/SPACE/ENTER) 或 文本": "ESC",
+        "按压时长(s)": "0.05",
+        "操作前延迟(s)": "0.2"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "wait-menu",
+      "type": "等待时间",
+      "name": "停留观察菜单",
+      "category": "时间",
+      "display_mode": "standard",
+      "x": 490,
+      "y": 0,
+      "w": 200,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "等待时长(s)": "2.0"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    },
+    {
+      "id": "close-menu",
+      "type": "键盘操作",
+      "name": "再按 ESC 关闭菜单",
+      "category": "动作",
+      "display_mode": "standard",
+      "x": 760,
+      "y": 0,
+      "w": 220,
+      "h": 84,
+      "_expanded_height": 84,
+      "config": {
+        "操作类型": "敲击单键",
+        "输入方式": "后台消息(PostMessage)",
+        "目标窗口标题(后台消息)": "鸣潮",
+        "按键名(如 F/SPACE/ENTER) 或 文本": "ESC",
+        "按压时长(s)": "0.05",
+        "操作前延迟(s)": "0.2"
+      },
+      "signal_config": {
+        "outputs": {
+          "OUT": {
+            "value": ""
+          }
+        },
+        "input": {
+          "type": "any",
+          "required": true
+        }
+      },
+      "is_disabled": false,
+      "is_collapsed": false
+    }
+  ],
+  "groups": [],
+  "edges": [
+    {
+      "src_id": "check-wuthering-waves",
+      "src_port": "已运行",
+      "tgt_id": "walk-forward",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "walk-forward",
+      "src_port": "OUT",
+      "tgt_id": "wait-after-walk",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "wait-after-walk",
+      "src_port": "OUT",
+      "tgt_id": "open-menu",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "open-menu",
+      "src_port": "OUT",
+      "tgt_id": "wait-menu",
+      "tgt_port": "IN"
+    },
+    {
+      "src_id": "wait-menu",
+      "src_port": "OUT",
+      "tgt_id": "close-menu",
+      "tgt_port": "IN"
+    }
+  ]
+}
