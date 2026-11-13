@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="300" viewBox="0 0 1280 300" role="img" aria-labelledby="title description">
+  <title id="title">AEGIS - Visual automation for Windows</title>
+  <desc id="description">A dark blue banner with connected workflow cards and the AEGIS wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0c1422"/><stop offset="1" stop-color="#17243a"/></linearGradient>
+    <linearGradient id="line"><stop stop-color="#41d9ae"/><stop offset="1" stop-color="#65a8ff"/></linearGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1" fill="#a2c1e8" opacity=".12"/></pattern>
+  </defs>
+  <rect width="1280" height="300" rx="20" fill="url(#bg)"/>
+  <rect width="1280" height="300" rx="20" fill="url(#dots)"/>
+  <path d="M704 75H744M704 225H744M1225 75H1250M1225 225H1250" stroke="#324660" stroke-width="1"/>
+  <g font-family="Segoe UI,Arial,sans-serif">
+    <text x="56" y="51" font-size="12" font-weight="700" letter-spacing="3" fill="#7bdcbb">VISUAL AUTOMATION / WINDOWS</text>
+    <text x="50" y="151" font-size="90" font-weight="750" letter-spacing="5" fill="#f3f7fc">AEGIS</text>
+    <text x="56" y="192" font-size="23" fill="#b9c9dc">A canvas for vision, logic and action.</text>
+    <g font-size="12" fill="#c7d6e7" font-weight="600">
+      <rect x="56" y="224" width="86" height="28" rx="14" fill="#24344b"/><text x="99" y="243" text-anchor="middle">41 NODES</text>
+      <rect x="152" y="224" width="92" height="28" rx="14" fill="#24344b"/><text x="198" y="243" text-anchor="middle">5 THEMES</text>
+      <rect x="254" y="224" width="116" height="28" rx="14" fill="#24344b"/><text x="312" y="243" text-anchor="middle">3 EDGE STYLES</text>
+      <rect x="380" y="224" width="100" height="28" rx="14" fill="#24344b"/><text x="430" y="243" text-anchor="middle">EN / 中文</text>
+    </g>
+    <g fill="none" stroke="url(#line)" stroke-width="2.5">
+      <path d="M786 150C835 150 821 85 869 85"/>
+      <path d="M786 150C835 150 821 215 869 215"/>
+      <path d="M1010 85H1043L1087 150H1120"/>
+      <path d="M1010 215H1043L1087 150"/>
+    </g>
+    <g fill="#1b2b40" stroke="#3c536d">
+      <rect x="636" y="117" width="150" height="66" rx="12"/>
+      <rect x="869" y="52" width="141" height="66" rx="12"/>
+      <rect x="869" y="182" width="141" height="66" rx="12"/>
+      <rect x="1120" y="117" width="112" height="66" rx="12"/>
+    </g>
+    <g fill="#e8f0fa" font-size="14" font-weight="600">
+      <text x="688" y="145">Observe</text><text x="918" y="80">Decide</text>
+      <text x="918" y="210">Transform</text><text x="1157" y="145">Act</text>
+    </g>
+    <g fill="#91a8c3" font-size="10"><text x="688" y="163">Vision · Window</text><text x="918" y="98">Logic · Routing</text><text x="918" y="228">Text · Memory</text><text x="1157" y="163">Automation</text></g>
+    <g fill="none" stroke="#53d9b0" stroke-width="1.5">
+      <rect x="651" y="133" width="25" height="31" rx="7"/><circle cx="663.5" cy="148.5" r="6"/>
+      <rect x="883" y="68" width="25" height="31" rx="7"/><path d="m890 83 6-6 6 6-6 6Z"/>
+      <rect x="883" y="198" width="25" height="31" rx="7"/><path d="M890 207h12m-6 0v14"/>
+      <rect x="1132" y="133" width="18" height="31" rx="7"/><path d="m1138 142 6 7-6 7"/>
+    </g>
+    <g fill="#101d2e" stroke="#53d9b0" stroke-width="2"><circle cx="786" cy="150" r="4"/><circle cx="869" cy="85" r="4"/><circle cx="869" cy="215" r="4"/><circle cx="1010" cy="85" r="4"/><circle cx="1010" cy="215" r="4"/><circle cx="1120" cy="150" r="4"/></g>
+  </g>
+</svg>

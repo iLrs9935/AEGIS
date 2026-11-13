@@ -12,6 +12,12 @@ ROOT_FILES = {
 SOURCE_DIRS = {"core", "functions", "nodes", "ui", "tests", "scripts", "tools"}
 IMAGE_FILES = {
     "docs/screenshots/main-en.png", "docs/screenshots/main-zh.png",
+    "docs/assets/readme-hero.svg",
+    *{f"docs/screenshots/theme-{name}-{locale}.png"
+      for name in ("custom-background", "night-city", "classic", "pop-art", "abyssal")
+      for locale in ("en", "zh")},
+    *{f"docs/screenshots/connections-{style}-{locale}.png"
+      for style in ("curve", "orthogonal", "circuit") for locale in ("en", "zh")},
     "images/icons/LOGO.ico",
     *{f"images/cdkey_process/{name}.png" for name in
       ("1", "2", "3", "4", "5", "6", "6.1", "7", "7.1", "error", "error2")},

@@ -1,18 +1,30 @@
-# AEGIS 可视化自动化工作流
+<p align="center">
+  <img src="docs/assets/readme-hero.svg" alt="AEGIS — Windows 可视化自动化工作流" width="100%">
+</p>
 
-[English](readme.md) | 简体中文
+<p align="center">把视觉、逻辑、文本和操作连成工作流，在自己的桌面上运行。</p>
 
-**维护状态：不定期维护。**
+<p align="center">
+  <a href="https://github.com/iLrs9935/AEGIS/actions/workflows/ci.yml"><img src="https://github.com/iLrs9935/AEGIS/actions/workflows/ci.yml/badge.svg" alt="源码检查与测试"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-238636?style=flat-square" alt="MIT 许可证"></a>
+  <img src="https://img.shields.io/badge/platform-Windows-2563eb?style=flat-square" alt="Windows">
+  <img src="https://img.shields.io/badge/Python-3.12%20to%203.14-3776ab?style=flat-square" alt="Python 3.12 至 3.14">
+</p>
 
-## 英文主界面
+<p align="center">
+  <a href="readme.md">English</a> · <strong>简体中文</strong><br>
+  <a href="#快速开始">快速开始</a> · <a href="examples/README.md">示例工作流</a> · <a href="#皮肤与连线">皮肤与连线</a> · <a href="SECURITY.md">隐私配置</a>
+</p>
 
-![英文主界面](docs/screenshots/main-en.png)
+![使用作者生成背景图的 AEGIS 中文界面](docs/screenshots/theme-custom-background-zh.png)
 
-## 中文主界面
-
-![中文主界面](docs/screenshots/main-zh.png)
+<p align="center"><sub>真实软件界面，背景图由项目作者生成。维护状态：不定期维护。</sub></p>
 
 AEGIS 是一个面向 Windows 的节点式自动化编排器。你可以把视觉识别、鼠标键盘、文本处理、逻辑判断、记忆、网络、AI 与系统操作连接成一张可保存、可复用、可循环执行的工作流图。
+
+| 可视化编排 | 明确的数据流 | 自己的工作台 |
+| --- | --- | --- |
+| 41 种内置节点，支持复用逻辑组、撤销和重做。 | 每条线传递一个有类型的值，工作流保存为可读的 JSON。 | 五套皮肤、三种连线、自定义背景，以及即时中英文切换。 |
 
 ## 当前能力
 
@@ -29,11 +41,13 @@ AEGIS 是一个面向 Windows 的节点式自动化编排器。你可以把视�
 - 41 种内置节点，覆盖动作、AI、逻辑、记忆、网络、通知、系统、文本、时间、触发和视觉。
 - JSON 工作流：图纸默认保存在 `workflows/`，也可以由 AI 直接生成。
 
-## 安装与启动
+## 快速开始
 
 需要 Windows 和 Python 3.12–3.14。源码发布包不附带本地 Python 环境、模型、DLL 或私人图纸。
 
 ```powershell
+git clone https://github.com/iLrs9935/AEGIS.git
+cd AEGIS
 py -3.14 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
@@ -66,6 +80,44 @@ Copy-Item config.local.example.json config.local.json
 AI 推理为可选功能：自行安装适合硬件的 `llama-cpp-python` 并选择本地 GGUF 模型。DLL 路径从当前 Python 包或打包目录发现；可用 `AEGIS_LLAMA_LIB` 指定，CUDA 使用 `CUDA_PATH` / `CUDA_HOME`。DXCAM 也是可选截图后端，基础安装使用其他现有后端。
 
 AEGIS 的键鼠、窗口、视觉和进程能力依赖 Windows API；其他系统仅能运行不依赖 Windows 的源码发布检查。
+
+## 皮肤与连线
+
+右上角 **⚙ → 🎨 换皮肤** 可以即时切换外观。上方展示的是带自定义背景的 **Command Terminal**，以下是另外四套内置主题。换肤会保留当前节点配置和连接关系。
+
+| 夜之城 | AEGIS Classic |
+| --- | --- |
+| ![夜之城主题](docs/screenshots/theme-night-city-zh.png) | ![AEGIS Classic 浅色主题](docs/screenshots/theme-classic-zh.png) |
+| **波普撞色** | **Abyssal** |
+| ![波普撞色主题](docs/screenshots/theme-pop-art-zh.png) | ![Abyssal 深色主题](docs/screenshots/theme-abyssal-zh.png) |
+
+### 三种连线风格
+
+通过 **⚙ → 〽 换连接线** 切换。同一张工作流可以使用不同的走线外观，执行逻辑保持一致。
+
+| 曲线 | 直角线 | 电路板走线 |
+| --- | --- | --- |
+| ![曲线连线](docs/screenshots/connections-curve-zh.png) | ![直角连线](docs/screenshots/connections-orthogonal-zh.png) | ![电路板连线](docs/screenshots/connections-circuit-zh.png) |
+
+通过 **⚙ → 🖼️ 画布背景 → 📂 载入背景图…** 设置自己的图片，再用 **🎛️ 调整透明度…** 保持节点清晰。皮肤和连线偏好会被记住，图纸也可以保存自己的外观设置。
+
+### 英文主界面与中文主界面
+
+右上角 **EN / 中文** 菜单即时切换当前界面。
+
+| 英文主界面 | 中文主界面 |
+| --- | --- |
+| ![英文主界面](docs/screenshots/main-en.png) | ![中文主界面](docs/screenshots/main-zh.png) |
+
+所有预览均来自真实 Qt 应用，使用公开示例数据。点击截图可以查看原始尺寸。
+
+用自己的本地图片重新生成双语主题和连线预览：
+
+```powershell
+python scripts/capture_ui.py --gallery --background "你的背景图路径.png" --output release/ui-previews
+```
+
+截图使用隔离的偏好设置与公开示例，不会执行工作流。
 
 ## 基本使用
 
