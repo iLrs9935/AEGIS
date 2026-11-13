@@ -180,6 +180,14 @@ The build uses the reviewed spec and only includes public workflows and approved
 
 AEGIS performs real keyboard, mouse, process, and power actions. Inspect unfamiliar workflows before running them. `--safe-power` intercepts hibernation and terminal exit; other actions still execute.
 
+## Inspiration and development
+
+AEGIS was inspired by [ComfyUI](https://github.com/Comfy-Org/ComfyUI) and [n8n](https://github.com/n8n-io/n8n), particularly their node-based interfaces and visual workflow design.
+
+This software was developed primarily with the help of **ChatGPT** and **Gemini**.
+
+The author plays **Wuthering Waves**, which is why AEGIS includes a dedicated set of **OK-WW nodes**. See the [OK-WW project](https://github.com/ok-oldking/ok-wuthering-waves).
+
 ## Maintenance and license
 
 Maintenance is **occasional / 不定期维护**. Issues and pull requests are welcome; response times and future releases are not guaranteed.

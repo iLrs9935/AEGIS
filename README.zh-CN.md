@@ -334,6 +334,14 @@ python pyinstaller.py
 
 更多配置与发布边界见 [SECURITY.md](SECURITY.md)，本次审阅记录见 [RELEASE_REVIEW.md](RELEASE_REVIEW.md)。
 
+## 灵感与开发说明
+
+AEGIS 的开发受到 [ComfyUI](https://github.com/Comfy-Org/ComfyUI) 和 [n8n](https://github.com/n8n-io/n8n) 的启发，特别是它们的节点式交互和可视化工作流编排方式。
+
+本软件主要借助 **ChatGPT** 和 **Gemini** 开发。
+
+作者平时玩《**鸣潮**》，因此专门加入了一组 **OK-WW 节点**。相关项目：[OK-WW（ok-wuthering-waves）](https://github.com/ok-oldking/ok-wuthering-waves)。
+
 ## 维护与许可证
 
 不定期维护，不保证固定更新频率或响应时间。欢迎提交问题和改进。
