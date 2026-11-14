@@ -1,4 +1,4 @@
-# AEGIS v3.0.0 — Windows x64 portable edition
+# AEGIS v3.0.1 — Windows x64 portable edition
 
 ## English
 
@@ -33,3 +33,17 @@ Bark 等私人参数可通过 EXE 同目录的 `config.local.json` 或环境变�
 Windows EXE 未做代码签名。AEGIS 源码采用 MIT，附带依赖各自保留原许可证，包括采用 GPL 的 PyQt6；依赖声明、许可证和源码分发链接见 `THIRD_PARTY_NOTICES.txt` 与 `THIRD_PARTY_LICENSES`。
 
 项目、源码与问题反馈：https://github.com/iLrs9935/AEGIS
+
+## Execution review / 执行审查
+
+Imported/AI/local workflows with desktop, file, process, system, network or nested-workflow effects need explicit per-run approval. `--autorun` does not grant approval; `--safe-power` enforces read-only workflow capabilities and is not an OS sandbox. Legacy click nodes migrate with a warning to specified coordinates; current-position clicks require an explicit mode.
+
+含桌面、文件修改、进程、系统、网络或图纸跳转的工作流，每次运行均需明确授权。`--autorun` 不等于授权；`--safe-power` 执行工作流只读权限策略，不是系统沙箱。旧点击节点提示迁移为指定坐标，原地点击须明确选择。
+
+Independent package verification / 独立验证实际 EXE：
+
+```powershell
+python scripts/verify_packaged.py --executable "release/my-build/dist/AEGIS Command Terminal/AEGIS Command Terminal.exe" --report release/package-evidence.json
+```
+
+This runs a disposable copy of the actual EXE: three built-in text/data workflows and an unapproved-system-node rejection. It does not validate real Bark, OK-WW, input or hibernation. The report records the executable SHA256. Startup validation in both languages is separate (`scripts/verify_packaged_startup.ps1`).

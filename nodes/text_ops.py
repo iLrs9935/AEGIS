@@ -1,3 +1,4 @@
+from core.context import snapshot
 # nodes/text_ops.py
 from core.event_bus import bus
 from functions.func_logic import get_context_value, set_context_value
@@ -53,8 +54,9 @@ def node_text_merge(config, inputs):
     out_var = config.get("存入变量名", "merged_text").strip()
 
     context = inputs.get("__global_context__", {})
-    text_a = get_context_value(context, var_a)
-    text_b = get_context_value(context, var_b)
+    values = snapshot(context)
+    text_a = get_context_value(values, var_a)
+    text_b = get_context_value(values, var_b)
 
     if text_a is None or text_b is None:
         return {"status": "Success", "active_port": "缺少变量"}

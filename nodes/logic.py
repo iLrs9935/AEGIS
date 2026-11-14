@@ -1,3 +1,4 @@
+from core.context import mutate
 # nodes/logic.py
 from core.event_bus import bus
 from core.signals import parse_signal_value
@@ -187,38 +188,29 @@ def logic_iterator_node(config, inputs):
     runtime_queue_key = f"__iterator_queue__:{node_id}"
     incoming_value = inputs.get("__value__")
 
-    # 新数组只在首次进入时复制进运行时队列。反馈线传回的是刚刚处理的
-    # 单个 value，不会意外重置队列。
-    if isinstance(incoming_value, (list, tuple)):
-        context[runtime_queue_key] = list(incoming_value)
-    elif runtime_queue_key not in context:
-        legacy_array = get_context_value(context, arr_var, default=[])
-        context[runtime_queue_key] = (
-            list(legacy_array) if isinstance(legacy_array, list) else []
-        )
+    def take(data):
+        if isinstance(incoming_value, (list, tuple)):
+            data[runtime_queue_key] = list(incoming_value)
+        elif runtime_queue_key not in data:
+            legacy = data.get(arr_var, [])
+            data[runtime_queue_key] = list(legacy) if isinstance(legacy, list) else []
+        queue = data[runtime_queue_key]
+        if not isinstance(queue, list) or not queue:
+            return False, None, 0
+        item = queue.pop(0)
+        data[arr_var] = list(queue)
+        data[out_var] = item
+        return True, item, len(queue)
 
-    current_array = context[runtime_queue_key]
-
-    # 2. 判断是否为空或不是列表
-    if not isinstance(current_array, list) or len(current_array) == 0:
-        bus.log_emitted.emit(
-            "WARN",
-            "Logic",
-            f"[{tag}] 🏁 队列 [{arr_var}] 已耗尽，分支：【队列为空(完成)】",
-        )
+    available, popped_item, remaining = mutate(context, take)
+    if not available:
+        bus.log_emitted.emit("WARN", "Logic", f"[{tag}] 队列 [{arr_var}] 已耗尽")
         return {"status": "Success", "active_port": "队列为空(完成)"}
-
-    # 3. 弹出一个元素
-    popped_item = current_array.pop(0)
-
-    # 4. 更新上下文（覆盖原数组，并将弹出的单个值暴露给动作节点）
-    set_context_value(context, arr_var, list(current_array))
-    set_context_value(context, out_var, popped_item)
 
     bus.log_emitted.emit(
         "SUCCESS",
         "Logic",
-        f"[{tag}] 🔄 成功弹出元素: '{popped_item}' (剩余 {len(current_array)} 个)",
+        f"[{tag}] 🔄 成功弹出元素: '{popped_item}' (剩余 {remaining} 个)",
     )
     return {
         "status": "Success",

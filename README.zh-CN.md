@@ -42,9 +42,18 @@ AEGIS 是一个面向 Windows 的节点式自动化编排器。你可以把视�
 - 41 种内置节点，覆盖动作、AI、逻辑、记忆、网络、通知、系统、文本、时间、触发和视觉。
 - JSON 工作流：图纸默认保存在 `workflows/`，也可以由 AI 直接生成。
 
+## v3.0.1 更新
+
+- 执行上下文按运行隔离，补齐线程安全和运行实例信号隔离。
+- 点击节点必须明确坐标模式，缺少坐标不会隐式原地点击。
+- 引擎与 Worker 统一检查每次运行授权；`--safe-power` 改为工作流只读权限策略。
+- 新增面向 LLM 的 [中文](docs/LLM_WORKFLOW_QUICKSTART.md) / [English](docs/LLM_WORKFLOW_QUICKSTART.en.md) 快速构筑文档及完整 JSON 示例。
+
+[人工实测记录](docs/MANUAL_VALIDATION.md)单独记录用户确认通过的真实键鼠、Bark、OK-WW/游戏和休眠操作。详细整改和实验记录正文保留中文，人工验证与自动化证据分别统计。
+
 ## 下载免安装版
 
-**[下载 AEGIS v3.0.0 Windows x64 免安装包](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-windows-x64.zip)**，无需单独安装 Python。
+**[下载 AEGIS v3.0.1 Windows x64 免安装包](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.1/AEGIS-v3.0.1-windows-x64.zip)**，无需单独安装 Python。
 
 1. 将整个 ZIP 解压到可写目录。
 2. 运行 **AEGIS Command Terminal.exe**，让 `_internal` 与 EXE 保持在同一目录。
@@ -52,9 +61,9 @@ AEGIS 是一个面向 Windows 的节点式自动化编排器。你可以把视�
 
 | 文件 | 用途 |
 | --- | --- |
-| [Windows x64 免安装 ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-windows-x64.zip) | 直接运行软件 |
-| [已审阅源码 ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-source.zip) | 查看或构建本次发布源码，附文件校验清单 |
-| [SHA256SUMS.txt](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/SHA256SUMS.txt) | 核验下载文件 |
+| [Windows x64 免安装 ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.1/AEGIS-v3.0.1-windows-x64.zip) | 直接运行软件 |
+| [已审阅源码 ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.1/AEGIS-v3.0.1-source.zip) | 查看或构建本次发布源码，附文件校验清单 |
+| [SHA256SUMS.txt](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.1/SHA256SUMS.txt) | 核验下载文件 |
 
 基础免安装版包含编辑器、视觉/键鼠功能和 OK-WW 节点，不附带可选的 llama-cpp-python、模型、CUDA 库或 DXCAM；需要这些后端时可使用源码或自定义构建。OK-WW 本体需要单独安装。EXE 未做代码签名，私人配置和附带依赖的许可证说明见[免安装版指南](docs/PORTABLE.md)。
 
@@ -257,7 +266,7 @@ python scripts/capture_ui.py --gallery --background "你的背景图路径.png" 
 
 ### 让 AI 直接生成图纸
 
-完整、可直接复制给 AI 的提示词和全部节点目录见 [AI_WORKFLOW_PROMPT.md](AI_WORKFLOW_PROMPT.md)。把该文件中的提示词发给 AI，再补一句你的自动化需求，要求它只返回 JSON；将结果保存到 `workflows/任意名称.json` 后即可在 AEGIS 中加载。
+供 LLM 快速上手请先读 [Workflow 构筑速成](docs/LLM_WORKFLOW_QUICKSTART.md)，含两份完整 JSON 示例；详细提示词和参数示例见 [AI_WORKFLOW_PROMPT.md](AI_WORKFLOW_PROMPT.md)。把该文件中的提示词发给 AI，再补一句你的自动化需求，要求它只返回 JSON；将结果保存到 `workflows/任意名称.json` 后即可在 AEGIS 中加载。
 
 ## 逻辑组
 
@@ -334,19 +343,21 @@ AEGIS 可以真实发送键鼠输入、关闭进程、启动程序和执行系�
 
 ## 测试与 GitHub 发布准备
 
+真实键鼠、Bark、OK-WW/游戏与实际休眠已由用户确认人工实测通过，见[人工验证记录](docs/MANUAL_VALIDATION.md)；人工结果与自动化/Mock 证据分别统计。
+
 ```powershell
-python -m unittest discover -s tests -v
+python scripts/run_tests.py --report release/test-report.json
 python scripts/check_release.py
 python scripts/export_github.py --output release/AEGIS-github-source.zip
 ```
 
-源码 ZIP 只包含白名单文件和逐文件 SHA256 清单。不要直接压缩整个工作目录；私人配置、数据库、通知队列、旧构建和备份均应保留在本地。现有 Git 索引中的非公开文件也会被检查。仓库包含 GitHub Actions 的源码检查与 Windows Python 3.12 / 3.14 测试工作流。
+源码 ZIP 只包含白名单文件和逐文件 SHA256 清单。不要直接压缩整个工作目录；私人配置、数据库、通知队列、旧构建和备份均应保留在本地。现有 Git 索引中的非公开文件也会被检查。仓库包含 GitHub Actions 的源码检查与 Windows Python 3.12 / 3.13 / 3.14 测试工作流。
 
 重新打包 EXE：
 
 ```powershell
 python -m pip install -r requirements-build.txt
-python scripts/build_portable.py --version 3.0.0 --output release/my-v3.0.0-build
+python scripts/build_portable.py --version 3.0.1 --output release/my-v3.0.1-build
 ```
 
 免安装包构建脚本先审阅白名单源码，再复制到全新目录构建，附带依赖许可证和公开示例，输出 Windows/源码 ZIP 及 SHA256 校验文件。它使用干净的标准构建环境，并保留已有构建目录。
@@ -368,3 +379,13 @@ AEGIS 的开发受到 [ComfyUI](https://github.com/Comfy-Org/ComfyUI) 和 [n8n](
 不定期维护，不保证固定更新频率或响应时间。欢迎提交问题和改进。
 
 采用 [MIT 许可证](LICENSE)。作者署名为 iLrs9935；分发副本或二创时应保留版权与许可声明。
+
+## 执行安全与上下文
+
+本地新建、外部导入和 AI 图纸均默认未授权。执行前集中列出高风险节点、影响和所需权限，默认拒绝；授权仅绑定当前内容与本次运行。直接调用引擎也检查权限，跳转图纸重新审查。`--autorun` 不等于授权高风险操作。
+
+`--safe-power` 现定义为工作流只读模式：拒绝键鼠/桌面、文件修改、进程、系统、外部服务和图纸跳转，避免通过启动命令或键盘绕过电源限制。它不隔离 Python 插件或操作系统，也不禁止应用自身初始化数据库和日志。
+
+两种点击节点都需要明确的“坐标模式”。旧图纸加载时提示迁移为“指定坐标”，缺失坐标即失败；如确需原地点击，手动选择“当前位置”并保存。后台点击必须指定坐标。工作流 JSON 的节点 ID、连线、既有配置键保持兼容，迁移增加的模式与版本字段在保存后持久化。
+
+每次执行使用独立线程安全上下文；读取列表/字典得到快照。复合更新使用 `mutate`，长时间状态操作使用保留键的 `edit`。相同 OK-WW 状态键的重叠操作明确失败，其他键不阻塞。详见[整改交付](docs/ENGINEERING_REMEDIATION.md)和[测试口径](docs/TESTING.md)。

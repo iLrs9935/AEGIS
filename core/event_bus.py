@@ -8,8 +8,10 @@ class _EventBus(QObject):
     """
 
     # --- 节点与 DAG 生命周期信号 ---
+    run_node_status_changed = pyqtSignal(str, str, str, str)
     node_status_changed = pyqtSignal(str, str, str)
     dag_completed = pyqtSignal(str, bool)
+    run_dag_completed = pyqtSignal(str, str, bool)
 
     # --- 系统与日志信号 ---
     log_emitted = pyqtSignal(str, str, str)
@@ -17,6 +19,7 @@ class _EventBus(QObject):
 
     # 最高权限 - 蓝图跃迁请求信号，参数为 (目标图纸绝对/相对路径)
     blueprint_jump_requested = pyqtSignal(str)
+    run_blueprint_jump_requested = pyqtSignal(str, str)
 
     # 节点内部文本显示更新信号
     # 参数 1: node_id (节点的唯一标识符)

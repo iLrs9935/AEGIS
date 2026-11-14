@@ -6,6 +6,7 @@ import time
 import unittest
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
@@ -82,21 +83,20 @@ class DailyRuntimeTests(QtTestCase):
             pool = QThreadPool()
             window.engine.thread_pool = pool
             recorder = RunLog(root / 'records')
-            def poll_sleep(*args):
-                state = window.engine.global_context.get(okww.STATE_KEY, {})
-                if state.get('launcher_update_finished_at') is not None:
-                    state['launcher_update_finished_at'] = time.monotonic() - 91
-                if state.get('game_missing_since') is not None:
-                    state['game_missing_since'] = time.monotonic() - 61
-                return True
             self.assertTrue(window.load_graph_from_json(str(workflow)))
             self.assertEqual(len(window.scene.connections), len(data['edges']))
             self.assertEqual(sum(isinstance(n, NodeItem) for n in window.scene.items()), len(data['nodes']))
+            clock = {'now': time.monotonic()}
+            def advance_clock():
+                clock['now'] += 100
+                return clock['now']
             patches = [
+                mock.patch('nodes.okww.time', new=SimpleNamespace(monotonic=advance_clock, time=time.time)),
                 mock.patch('nodes.okww._relevant_processes', side_effect=inspect),
                 mock.patch('nodes.system.execute_start_process', side_effect=launch),
                 mock.patch('nodes.system.execute_sleep', return_value=True),
-                mock.patch('nodes.okww.execute_sleep', side_effect=poll_sleep),
+                mock.patch('nodes.okww.execute_sleep', return_value=True),
+                mock.patch.object(window, '_confirm_execution_review', return_value=True),
                 mock.patch('nodes.timers.execute_sleep', return_value=True),
                 mock.patch('nodes.notifications.execute_reliable_bark_push', return_value={'delivered': True, 'queued': False}),
                 mock.patch('functions.func_window.get_target_window', return_value=(99, (0, 0, 100, 100))),

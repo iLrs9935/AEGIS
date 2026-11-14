@@ -30,6 +30,8 @@ from PyQt6.QtWidgets import (
 )
 
 from core.engine import DAGEngine
+from core.security import PermissionDenied
+from core.workflow import migrate_click_modes, validate_document
 from core.event_bus import bus
 from nodes import NODE_REGISTRY
 
@@ -56,12 +58,15 @@ class MainWindow(QMainWindow):
 
     def __init__(self, init_file=None, autorun=False):
         super().__init__()
-        self.setWindowTitle(tr("AEGIS 3.0 - 战术指挥终端"))
+        self.setWindowTitle(tr("AEGIS 3.0.1 - 战术指挥终端"))
         self.resize(1400, 900)
         self.setStyleSheet(f"background-color: {Theme.BG_COLOR.name()};")
 
         self.engine = DAGEngine()
         self.current_workflow_path = None
+        self.workflow_source = "local"
+        self.workflow_meta = {}
+        self.workflow_notices = []
         self.current_theme_name = Theme.load_global_theme()
         self.edge_style = Theme.load_global_edge_style()
         self._inspector_width = 320
@@ -95,7 +100,9 @@ class MainWindow(QMainWindow):
         self.init_ui()
         bus.log_emitted.connect(self.append_log)
         bus.blueprint_jump_requested.connect(self.handle_blueprint_jump)
+        bus.run_blueprint_jump_requested.connect(self._on_run_blueprint_jump)
         bus.dag_completed.connect(self._on_dag_completed)
+        bus.run_dag_completed.connect(self._on_run_dag_completed)
         # 处理启动传参（如果传入的是相对路径，需要将其转换为绝对路径）
         if init_file:
             # 兼容绝对路径和相对于 exe 的相对路径
@@ -260,7 +267,7 @@ class MainWindow(QMainWindow):
     def set_ui_language(self, chosen, persist=True):
         """Switch presentation in place, preserving the graph and undo history."""
         set_language(chosen, persist=persist)
-        self.setWindowTitle(tr("AEGIS 3.0 - 战术指挥终端"))
+        self.setWindowTitle(tr("AEGIS 3.0.1 - 战术指挥终端"))
         self.settings_button.setToolTip(tr("画布设置"))
         self.language_button.setText("EN" if chosen == "en" else "中文")
         for action, code in zip(self.language_menu.actions(), ("en", "zh")):
@@ -575,6 +582,9 @@ class MainWindow(QMainWindow):
         # 加入 meta 基因序列，记录当前终端皮肤
         data = {
             "meta": {
+                **self.workflow_meta,
+                "source": self.workflow_source,
+                "click_mode_version": 1,
                 "theme": self.current_theme_name,
                 "edge_style": self.edge_style,
             },
@@ -647,13 +657,23 @@ class MainWindow(QMainWindow):
             bus.log_emitted.emit("ERROR", "System", f"保存失败: {e}")
 
     def load_graph_from_json(self, file_path):
+        if self.engine.is_running:
+            bus.log_emitted.emit("ERROR", "Security", "Cannot replace a running workflow")
+            return False
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
+            validate_document(data, NODE_REGISTRY)
         except Exception as e:
             bus.log_emitted.emit("ERROR", "System", f"读取失败: {e}")
             return False
 
+        data, self.workflow_notices = migrate_click_modes(data)
+        for notice in self.workflow_notices:
+            bus.log_emitted.emit("WARN", "Migration", notice)
+        self.workflow_meta = dict(data.get("meta", {}))
+        # A file cannot grant itself local trust or deserialize permissions.
+        self.workflow_source = "ai" if self.workflow_meta.get("source") == "ai" else "external"
         data = self._migrate_legacy_value_workflow(data)
 
         self.scene.clear()
@@ -845,6 +865,9 @@ class MainWindow(QMainWindow):
             self.scene.clear()
             self.scene.connections = []
             self.current_workflow_path = None
+            self.workflow_source = "local"
+            self.workflow_meta = {}
+            self.workflow_notices = []
             self.view.reset_history()
             self.console.clear()
             bus.log_emitted.emit("INFO", "System", "✨ 图纸已清空，开启全新部署。")
@@ -854,6 +877,15 @@ class MainWindow(QMainWindow):
         return True
 
     def _on_dag_completed(self, _reason, _success):
+        if self.engine._managed:
+            return  # Public completion events are display/legacy notifications.
+        self._finish_workflow_switch()
+
+    def _on_run_dag_completed(self, run_id, _reason, _success):
+        if run_id == self.engine.run_id:
+            self._finish_workflow_switch()
+
+    def _finish_workflow_switch(self):
         request = self._pending_workflow_switch
         if request is None:
             return
@@ -861,6 +893,10 @@ class MainWindow(QMainWindow):
         self._apply_workflow_switch(*request)
 
     # ================= 蓝图跃迁核心逻辑 =================
+    def _on_run_blueprint_jump(self, run_id, file_path):
+        if run_id == self.engine.run_id and self.engine.is_running:
+            self.handle_blueprint_jump(file_path)
+
     def handle_blueprint_jump(self, file_path):
         bus.log_emitted.emit("WARN", "System", "🌀 跃迁引擎介入，当前世界线强制收束...")
         self._request_workflow_switch(file_path, autorun=True)
@@ -897,9 +933,28 @@ class MainWindow(QMainWindow):
             for in_p, out_p, _ in self.scene.connections
         ]
 
-        self.engine.load_from_ui(nodes_data, edges_data)
+        self.engine.load_from_ui(nodes_data, edges_data, source=self.workflow_source)
+        review = self.engine.review_execution()
+        if review.unknown:
+            bus.log_emitted.emit("ERROR", "Security", review.describe())
+            return False
+        from functions import func_system
+        if review.required and not func_system.SAFE_POWER_MODE:
+            if not self._confirm_execution_review(review):
+                bus.log_emitted.emit("WARN", "Security", "Execution authorization declined / 已拒绝执行授权")
+                return False
+            self.engine.authorize_execution(review.required)
         bus.log_emitted.emit("INFO", "Engine", f"开始工作流: {self.current_workflow_path}; 节点={len(nodes_data)}, 连线={len(edges_data)}")
-        self.engine.start_execution()
+        return self.engine.start_execution()
+
+    def _confirm_execution_review(self, review):
+        message = "\n".join([*self.workflow_notices, review.describe()])
+        answer = QMessageBox.warning(
+            self, "Execution review / 执行安全审查", message,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        return answer == QMessageBox.StandardButton.Yes
 
     def stop_dag(self):
         if stop_event and self.engine.is_running:

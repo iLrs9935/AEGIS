@@ -2,6 +2,7 @@
 import importlib
 import os
 import pkgutil
+from core.security import NODE_CAPABILITIES
 
 NODE_REGISTRY = {}
 
@@ -16,6 +17,7 @@ def register_node(name: str, category: str = "General", schema: dict = None):
             "func": func,
             "category": category,
             "schema": schema or {},
+            "capabilities": NODE_CAPABILITIES.get(name),
         }
         return func
 

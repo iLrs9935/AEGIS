@@ -40,9 +40,18 @@ AEGIS is a Windows desktop workflow editor for computer vision, mouse and keyboa
 - English and Simplified Chinese interface controls, node menus, configuration labels, choices, and port labels.
 - Optional local model inference, browser scraping, and reliable Bark notifications with a local outbox.
 
+## What changed in v3.0.1
+
+- Run-isolated, thread-safe context and scoped execution signals.
+- Explicit click coordinate modes; missing coordinates fail without clicking.
+- Per-run workflow authorization, checked by both the engine and workers. `--safe-power` now enforces read-only workflow capabilities.
+- [English](docs/LLM_WORKFLOW_QUICKSTART.en.md) / [中文](docs/LLM_WORKFLOW_QUICKSTART.md) quickstarts for LLM workflow generation, with complete JSON examples.
+
+The Chinese [manual validation record](docs/MANUAL_VALIDATION.md) records user-confirmed real keyboard/mouse, Bark, OK-WW/game and hibernation tests separately from automated evidence. Detailed engineering and experiment records remain in Chinese.
+
 ## Download
 
-**[Download AEGIS v3.0.0 for Windows x64](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-windows-x64.zip)** — portable ZIP, no separate Python installation required.
+**[Download AEGIS v3.0.1 for Windows x64](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.1/AEGIS-v3.0.1-windows-x64.zip)** — portable ZIP, no separate Python installation required.
 
 1. Extract the entire ZIP into a writable folder.
 2. Run **AEGIS Command Terminal.exe**, keeping `_internal` beside it.
@@ -50,9 +59,9 @@ AEGIS is a Windows desktop workflow editor for computer vision, mouse and keyboa
 
 | File | Use |
 | --- | --- |
-| [Windows x64 portable ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-windows-x64.zip) | Run the application |
-| [Audited source ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-source.zip) | Read or build the release source, with a file manifest |
-| [SHA256SUMS.txt](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/SHA256SUMS.txt) | Verify the downloaded archives |
+| [Windows x64 portable ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.1/AEGIS-v3.0.1-windows-x64.zip) | Run the application |
+| [Audited source ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.1/AEGIS-v3.0.1-source.zip) | Read or build the release source, with a file manifest |
+| [SHA256SUMS.txt](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.1/SHA256SUMS.txt) | Verify the downloaded archives |
 
 The standard portable edition includes the editor, vision/keyboard/mouse features and OK-WW nodes. Optional llama-cpp-python, model weights, CUDA libraries and DXCAM are not bundled; use a source/custom build for those backends. OK-WW itself is installed separately. The Windows executable is unsigned. See the [portable guide](docs/PORTABLE.md) for private configuration and bundled dependency licenses.
 
@@ -166,19 +175,21 @@ A workflow contains `meta`, `nodes`, `groups`, and `edges`. Each edge carries on
 
 Node execution status is separate from business data: an image search returning `found: false` is a valid result; a capture backend exception is a failure. Use a Value router for branches.
 
-Inspect the included examples for complete JSON documents. The detailed [Chinese workflow-generation prompt](AI_WORKFLOW_PROMPT.md) lists canonical node identifiers and schemas. These identifiers remain the same in the English interface.
+Start with the [LLM workflow quickstart](docs/LLM_WORKFLOW_QUICKSTART.en.md), including two complete JSON examples, then inspect the included workflows. The detailed [Chinese workflow-generation prompt](AI_WORKFLOW_PROMPT.md) lists canonical node identifiers and schemas. These identifiers remain the same in the English interface.
 
 ## Tests and source publishing
 
+Real mouse/keyboard, Bark, OK-WW/game and hibernation have passed [user-reported manual validation](docs/MANUAL_VALIDATION.md). These records remain separate from automated test evidence.
+
 ```powershell
-python -m unittest discover -s tests -v
+python scripts/run_tests.py --report release/test-report.json
 python scripts/check_release.py
 python scripts/export_github.py --output release/AEGIS-github-source.zip
 ```
 
 The export script audits an explicit allowlist, excludes local private data, and adds a per-file SHA256 manifest. The audit also checks the Git index for private files and stale staged credentials. Do not upload an archive of the entire working directory or reuse old binaries and backups as release attachments.
 
-GitHub Actions runs the source audit and Windows tests on Python 3.12 and 3.14. The Windows-specific application features do not run on Linux or macOS.
+GitHub Actions runs the source audit and Windows tests on Python 3.12, 3.13 and 3.14. The Windows-specific application features do not run on Linux or macOS.
 
 To reproduce the bilingual theme and connection gallery with your own local image:
 
@@ -192,14 +203,16 @@ The capture uses isolated preferences and public examples; it does not run the w
 
 ```powershell
 python -m pip install -r requirements-build.txt
-python scripts/build_portable.py --version 3.0.0 --output release/my-v3.0.0-build
+python scripts/build_portable.py --version 3.0.1 --output release/my-v3.0.1-build
 ```
 
 The portable builder copies an audited public-only snapshot into a fresh directory, builds the Windows executable, includes dependency licenses and examples, and emits Windows/source ZIPs with SHA256 checksums. It requires a clean standard build environment and preserves existing output directories.
 
 For a custom PyInstaller directory, use `python pyinstaller.py` after installing the necessary optional dependencies. The reviewed spec only includes public workflows and approved image templates. Optional native inference DLLs require `AEGIS_BUNDLE_LLAMA=1` and locally supplied dependencies under `dlls/`.
 
-AEGIS performs real keyboard, mouse, process, and power actions. Inspect unfamiliar workflows before running them. `--safe-power` intercepts hibernation and terminal exit; other actions still execute.
+AEGIS performs real keyboard, mouse, process, file, network and power actions. Every run containing these effects requires an explicit review, including local, imported and AI workflows; direct engine calls default to denial. Grants apply to one exact run, never to a nested workflow. `--safe-power` now enforces read-only workflow capabilities, also blocking indirect power paths through process launch or keyboard input. It is not an OS sandbox: trusted Python extensions and application-owned initialization/logging remain outside this boundary.
+
+Click nodes require an explicit coordinate mode. Imported legacy click nodes migrate to specified coordinates with a warning; missing coordinates fail. Choose current cursor position explicitly when intended. Run contexts are isolated and thread-safe; nested mutable data must use atomic updates rather than mutate a returned snapshot. See [engineering remediation and limits](docs/ENGINEERING_REMEDIATION.md) and [test evidence conventions](docs/TESTING.md).
 
 ## Inspiration and development
 

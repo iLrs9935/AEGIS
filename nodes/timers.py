@@ -1,3 +1,4 @@
+from core.context import mutate
 # nodes/timers.py
 import time
 
@@ -47,20 +48,16 @@ def pulse_timer(config, inputs):
     node_id = inputs.get("__node_id__", "unknown")
     start_time_key = f"timer_start_{node_id}"
 
-    # 3. 逻辑处理
-    if start_time_key not in context:
-        context[start_time_key] = time.time()
-        bus.log_emitted.emit(
-            "INFO", "时间", f"[{tag}] ⏱️ 首次启动，目标超时: {max_time}s"
-        )
-
-    elapsed = time.time() - context[start_time_key]
-
+    now = time.time()
+    def tick(data):
+        start = data.setdefault(start_time_key, now)
+        elapsed = now - start
+        if elapsed >= max_time:
+            data.pop(start_time_key, None)
+        return elapsed
+    elapsed = mutate(context, tick)
     if elapsed >= max_time:
-        bus.log_emitted.emit(
-            "ERROR", "时间", f"[{tag}] ⏰ 达到最大监测时间 ({max_time}s)，终止循环！"
-        )
-        del context[start_time_key]
+        bus.log_emitted.emit("ERROR", "时间", f"[{tag}] 达到最大监测时间 ({max_time}s)")
         return {"status": "Success", "active_port": "超时跳出"}
     else:
         bus.log_emitted.emit(

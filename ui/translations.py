@@ -1,6 +1,9 @@
 """English UI text. Keys are canonical presentation strings."""
 
-ENGLISH = {'AEGIS 3.0 - 战术指挥终端': 'AEGIS 3.0 - Command Terminal',
+ENGLISH = {
+    "坐标模式": "Coordinate mode",
+    "指定坐标": "Specified coordinates",
+    "当前位置": "Current cursor position",'AEGIS 3.0.1 - 战术指挥终端': 'AEGIS 3.0.1 - Command Terminal',
  '▶ 运行': '▶ Run',
  '⏹ 停止': '⏹ Stop',
  ' 📁 工作流': ' Workflows',

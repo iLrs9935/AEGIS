@@ -1,5 +1,7 @@
 # nodes/actions.py
 import time
+import math
+from numbers import Real
 
 from core.event_bus import bus
 from functions.func_logic import get_context_value
@@ -25,10 +27,38 @@ try:
 except ImportError as e:
     print(f"⚠️ 警告: 动作底层库导入失败 ({e})")
 
+def _finite_number(value, label, minimum, maximum):
+    if isinstance(value, bool):
+        raise ValueError(f"{label}不能是布尔值")
+    number = float(value)
+    if not math.isfinite(number) or not minimum <= number <= maximum:
+        raise ValueError(f"{label}超出允许范围 [{minimum}, {maximum}]")
+    return number
+
+
+def _click_point(config, inputs):
+    mode = config.get("坐标模式")
+    if mode == "当前位置":
+        return None  # Explicit authorization in config; never a fallback.
+    if mode != "指定坐标":
+        raise ValueError("必须明确选择坐标模式；旧图纸请重新保存并确认点击模式")
+    coords = [inputs.get("target_x"), inputs.get("target_y")]
+    if any(isinstance(v, bool) or not isinstance(v, Real) for v in coords):
+        raise ValueError("必须提供数值型 X、Y 坐标")
+    if any(not math.isfinite(v) or int(v) != v for v in coords):
+        raise ValueError("坐标必须是有限整数像素")
+    x, y = map(int, coords)
+    left, top, width, height = (win32api.GetSystemMetrics(i) for i in (76, 77, 78, 79))
+    if width <= 0 or height <= 0 or not (left <= x < left + width and top <= y < top + height):
+        raise ValueError("坐标超出 Windows 虚拟桌面范围")
+    return x, y
+
+
 # ==========================================
 # 节点 1：物理点击 (支持前后台切换)
 # ==========================================
 click_schema = {
+    "坐标模式": ["指定坐标", "当前位置"],
     "执行模式": ["前台物理(真实鼠标)", "后台静默(不抢鼠标)"],
     "点击按键": ["left", "right", "middle"],
     "点击动作": ["单击", "双击", "按下", "释放"],
@@ -38,45 +68,40 @@ click_schema = {
 
 @register_node(name="物理点击", category="动作", schema=click_schema)
 def click_target(config, inputs):
-    mode = config.get("执行模式", "前台物理(真实鼠标)")
-    button = config.get("点击按键", "left")
-    action_type = config.get("点击动作", "单击")
-    delay = float(config.get("操作前延迟(s)", 0.1))
-
-    x = inputs.get("target_x")
-    y = inputs.get("target_y")
-    hwnd = inputs.get("hwnd")  # 拿取上游视觉节点传下来的目标窗口句柄
-
-    if x is None or y is None:
-        raise Exception("❌ 未接收到绝对坐标！请确保该节点连接在『视觉寻图』节点之后。")
-
-    time.sleep(delay)
-
-    if "前台" in mode:
-        bus.log_emitted.emit("INFO", "动作", f"🖱️ [前台] 移动物理鼠标至 ({x}, {y})")
-        win32api.SetCursorPos((int(x), int(y)))
-        time.sleep(0.05)
-        success = execute_global_mouse_action(button, action_type, f"DAG_{button}")
-    else:
-        if not hwnd:
-            raise Exception(
-                "❌ 后台点击需要上游提供窗口句柄(hwnd)！请确保寻图节点成功传出了 hwnd。"
-            )
-        bus.log_emitted.emit("INFO", "动作", f"👻 [后台] 静默注入点击至句柄 {hwnd}")
-        success = execute_background_click(
-            hwnd, x, y, button, action_type, f"DAG_{button}"
-        )
-
-    if success:
-        return {"status": "Success"}
-    else:
-        raise Exception("动作执行失败，请检查日志。")
+    try:
+        mode = config.get("执行模式", "前台物理(真实鼠标)")
+        if mode not in click_schema["执行模式"]:
+            raise ValueError("未知执行模式")
+        button = config.get("点击按键", "left")
+        action_type = config.get("点击动作", "单击")
+        if button not in click_schema["点击按键"] or action_type not in click_schema["点击动作"]:
+            raise ValueError("无效的点击按键或动作")
+        delay = _finite_number(config.get("操作前延迟(s)", 0.1), "操作前延迟", 0, 3600)
+        point = _click_point(config, inputs)
+        hwnd = inputs.get("hwnd")
+        if "后台" in mode:
+            if point is None:
+                raise ValueError("当前位置模式仅支持前台点击")
+            if not hwnd or not win32gui.IsWindow(hwnd):
+                raise ValueError("后台点击缺少有效 hwnd")
+        time.sleep(delay)
+        if "前台" in mode:
+            if point is not None:
+                win32api.SetCursorPos(point)
+                time.sleep(0.05)
+            success = execute_global_mouse_action(button, action_type, f"DAG_{button}")
+        else:
+            success = execute_background_click(hwnd, *point, button, action_type, f"DAG_{button}")
+        return {"status": "Success"} if success else {"status": "Failed", "error": "点击失败或被中止"}
+    except (ValueError, TypeError, OverflowError) as exc:
+        return {"status": "Failed", "error": str(exc)}
 
 
 # ==========================================
 # 节点 2：连续物理点击 (狂暴连点器)
 # ==========================================
 rapid_click_schema = {
+    "坐标模式": ["指定坐标", "当前位置"],
     "点击按键": ["left", "right"],
     "点击次数": "20",
     "点击间隔(s)": "0.05",
@@ -85,30 +110,24 @@ rapid_click_schema = {
 
 @register_node(name="连续物理点击", category="动作", schema=rapid_click_schema)
 def rapid_click_target(config, inputs):
-    button = config.get("点击按键", "left")
-    count = int(config.get("点击次数", 20))
-    interval = float(config.get("点击间隔(s)", 0.05))
-
-    x = inputs.get("target_x")
-    y = inputs.get("target_y")
-
-    if x is not None and y is not None:
-        bus.log_emitted.emit("INFO", "动作", f"🖱️ 移动鼠标至坐标 ({x}, {y}) 准备连点")
-        win32api.SetCursorPos((int(x), int(y)))
-        time.sleep(0.05)
-    else:
-        bus.log_emitted.emit(
-            "WARN", "动作", "⚠️ 未收到绝对坐标，将在当前鼠标位置【原地连点】！"
-        )
-
-    bus.log_emitted.emit("INFO", "动作", f"🔫 开启狂暴连点：{button}键 {count}次...")
-
-    success = execute_rapid_click(button, count, interval, "DAG_RapidClick")
-
-    if success:
-        return {"status": "Success"}
-    else:
-        raise Exception("连点执行失败或被中止。")
+    try:
+        button = config.get("点击按键", "left")
+        if button not in rapid_click_schema["点击按键"]:
+            raise ValueError("无效的连点按键")
+        raw_count = config.get("点击次数", 20)
+        number = _finite_number(raw_count, "点击次数", 1, 10000)
+        if not number.is_integer():
+            raise ValueError("点击次数必须为整数")
+        count = int(number)
+        interval = _finite_number(config.get("点击间隔(s)", 0.05), "点击间隔", 0, 3600)
+        point = _click_point(config, inputs)
+        if point is not None:
+            win32api.SetCursorPos(point)
+            time.sleep(0.05)
+        success = execute_rapid_click(button, count, interval, "DAG_RapidClick")
+        return {"status": "Success"} if success else {"status": "Failed", "error": "连点失败或被中止"}
+    except (ValueError, TypeError, OverflowError) as exc:
+        return {"status": "Failed", "error": str(exc)}
 
 
 # ==========================================

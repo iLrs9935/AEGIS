@@ -1,3 +1,4 @@
+from core.context import stateful
 # nodes/system.py
 import os
 import time
@@ -36,6 +37,7 @@ start_schema = {
 
 
 @register_node(name="启动程序", category="系统", schema=start_schema)
+@stateful("__okww_unattended_daily__")
 def start_program(config, inputs):
     path = config.get("程序路径", "")
     args = config.get("启动参数", "")
@@ -256,7 +258,10 @@ def execute_blueprint_jump(config, inputs):
     execute_sleep(delay)
 
     try:
-        bus.blueprint_jump_requested.emit(path)
+        if inputs.get("__run_id__"):
+            bus.run_blueprint_jump_requested.emit(inputs["__run_id__"], path)
+        else:
+            bus.blueprint_jump_requested.emit(path)
     except AttributeError:
         raise Exception("总线拒绝访问。")
 

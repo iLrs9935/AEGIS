@@ -1,3 +1,4 @@
+from core.context import snapshot
 # functions/func_logic.py
 
 
@@ -17,7 +18,8 @@ def check_logic_and(context, keys):
     valid_keys = [k.strip() for k in keys if k.strip()]
     if not valid_keys:
         return False
-    return all(context.get(k) is True for k in valid_keys)
+    values = snapshot(context)
+    return all(values.get(k) is True for k in valid_keys)
 
 
 def check_logic_or(context, keys):
@@ -25,4 +27,5 @@ def check_logic_or(context, keys):
     valid_keys = [k.strip() for k in keys if k.strip()]
     if not valid_keys:
         return False
-    return any(context.get(k) is True for k in valid_keys)
+    values = snapshot(context)
+    return any(values.get(k) is True for k in valid_keys)

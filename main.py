@@ -22,12 +22,16 @@ def main():
     parser = argparse.ArgumentParser(description="AEGIS 自动化控制终端")
     parser.add_argument("--file", type=str, help="启动时自动加载的图纸 (.json) 路径")
     parser.add_argument("--autorun", action="store_true", help="加载后是否自动开始执行")
-    parser.add_argument("--safe-power", action="store_true", help="验证模式：拦截休眠和终端退出")
+    parser.add_argument("--safe-power", action="store_true", help="只读工作流模式：拒绝桌面、文件修改、进程、系统、网络与图纸跳转；非系统沙箱")
     parser.add_argument("--lang", choices=("en", "zh"), help="Interface language: en or zh")
+    parser.add_argument("--verify-package", metavar="REPORT", help="Verify built-in text/data examples in the actual EXE and write fresh JSON evidence")
     args, _ = parser.parse_known_args()
 
     # 2. 启动 Qt 应用
     app = QApplication(sys.argv)
+    if args.verify_package:
+        from core.package_probe import verify_package
+        return verify_package(app, args.verify_package)
     from ui.i18n import initialize_language
     initialize_language(args.lang)
     from core.run_log import RunLog
@@ -53,4 +57,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

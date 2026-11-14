@@ -5,7 +5,7 @@ on:
       version:
         description: Release version (MAJOR.MINOR.PATCH)
         required: true
-        default: '3.0.0'
+        default: '3.0.1'
       source_ref:
         description: Full source commit SHA
         required: true
@@ -15,7 +15,42 @@ on:
 permissions:
   contents: read
 jobs:
+  validate:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.13', '3.14']
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Verify exact release source and run all layers
+        shell: pwsh
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:SOURCE_REF -notmatch '^[a-f0-9]{40}$' -or (git rev-parse HEAD) -ne $env:SOURCE_REF) { throw 'Source revision mismatch' }
+          python -m pip install -r requirements.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Test dependencies failed' }
+          python scripts/run_tests.py --report release/test-report.json
+          if ($LASTEXITCODE -ne 0) { throw 'Release source tests failed' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-tests-python-${{ matrix.python }}
+          path: release/test-report.json
   build:
+    needs: validate
     runs-on: windows-latest
     timeout-minutes: 30
     permissions:
@@ -48,9 +83,20 @@ jobs:
       - name: Check English and Chinese startup
         shell: pwsh
         run: |
+          $ErrorActionPreference='Stop'
           foreach ($language in @('en','zh')) {
             & .\scripts\verify_packaged_startup.ps1 -ExecutablePath '.\release\portable\dist\AEGIS Command Terminal\AEGIS Command Terminal.exe' -WorkflowPath '.\examples\workflows\01_hello_text.json' -Language $language
           }
+      - name: Execute packaged text, routing, loop and permission scenarios
+        shell: pwsh
+        run: |
+          & .\.release-env\Scripts\python.exe -B scripts/verify_packaged.py --executable 'release/portable/dist/AEGIS Command Terminal/AEGIS Command Terminal.exe' --report release/packaged-report.json
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged application verification failed' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: packaged-exe-evidence
+          path: release/packaged-report.json
       - name: Upload verified assets to the draft release
         shell: pwsh
         env:

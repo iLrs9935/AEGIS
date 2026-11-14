@@ -1,3 +1,4 @@
+from core.context import snapshot, mutate
 # nodes/ai.py
 from core.event_bus import bus
 from functions.func_ai import generate_chat, load_model, unload_model
@@ -58,7 +59,7 @@ def node_build_prompt(config, inputs):
     out_var = config.get("输出变量名", "final_prompt")
 
     try:
-        user_content = raw_content.format(**context)
+        user_content = raw_content.format(**snapshot(context))
     except KeyError as e:
         user_content = raw_content
         bus.log_emitted.emit("WARN", "AI_Node", f"提示词缺少上下文变量: {e}")
@@ -186,11 +187,15 @@ def node_save_chat(config, inputs):
     ai_var = config.get("读取AI回复变量", "ai_decision").strip()
     context = inputs.get("__global_context__", {})
 
-    history = get_context_value(context, array_var)
-    ai_text = get_context_value(context, ai_var)
-
-    if isinstance(history, list) and ai_text:
-        history.append({"role": "assistant", "content": ai_text})
+    def append_reply(data):
+        history = data.get(array_var)
+        ai_text = data.get(ai_var)
+        if isinstance(history, list) and ai_text:
+            history.append({"role": "assistant", "content": ai_text})
+            return list(history)
+        return None
+    history = mutate(context, append_reply)
+    if history is not None:
 
         # 调用底层 Func (vault.write) 写入 SQLite
         vault.write(vault_key, history)

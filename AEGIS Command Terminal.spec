@@ -34,7 +34,7 @@ if sys.platform == 'win32':
 selenium_hiddenimports = collect_submodules('selenium')
 webdriver_manager_hiddenimports = collect_submodules('webdriver_manager')
 project_root = Path(SPECPATH)
-build_version = os.environ.get('AEGIS_BUILD_VERSION', '3.0.0')
+build_version = os.environ.get('AEGIS_BUILD_VERSION', '3.0.1')
 version_parts = tuple(int(value) for value in build_version.split('.'))
 if len(version_parts) != 3 or any(value < 0 or value > 65535 for value in version_parts):
     raise ValueError('AEGIS_BUILD_VERSION must contain three version numbers')

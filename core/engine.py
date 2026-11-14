@@ -1,7 +1,11 @@
 # core/engine.py
 # AEGIS之心 v1.1
 import networkx as nx
-from PyQt6.QtCore import QObject, QRunnable, QThreadPool, QTimer, pyqtSlot
+from copy import deepcopy
+from uuid import uuid4
+from .context import ExecutionContext
+from .security import ExecutionPolicy, PermissionDenied, review_workflow
+from PyQt6.QtCore import QObject, QRunnable, QThread, QThreadPool, QTimer, pyqtSlot
 
 from nodes import NODE_REGISTRY
 
@@ -30,6 +34,7 @@ class NodeWorker(QRunnable):
         config: dict,
         inputs: dict,
         is_disabled: bool = False,
+        *, run_id=None, policy=None, fingerprint=None, node_spec=None,
     ):
         super().__init__()
         self.node_id = node_id
@@ -37,6 +42,15 @@ class NodeWorker(QRunnable):
         self.config = config
         self.inputs = inputs
         self.is_disabled = is_disabled
+        self.run_id = run_id
+        self.policy = policy
+        self.fingerprint = fingerprint
+        self.node_spec = deepcopy(node_spec)
+
+    def _emit_status(self, node_id, status, result):
+        if self.run_id is not None:
+            bus.run_node_status_changed.emit(self.run_id, node_id, status, result)
+        bus.node_status_changed.emit(node_id, status, result)
 
     def run(self):
         # ====== 新增防线：引擎级拦截 ======
@@ -47,7 +61,7 @@ class NodeWorker(QRunnable):
                 "Engine",
                 f"🛑 拦截生效！[{self.node_name}] 因紧急刹车被取消执行。",
             )
-            bus.node_status_changed.emit(self.node_id, "Cancelled", "")
+            self._emit_status(self.node_id, "Cancelled", "")
             return
         # ==================================
 
@@ -57,20 +71,35 @@ class NodeWorker(QRunnable):
                 "Engine",
                 f"🚫 [{self.node_name}] 被手动禁用，转化为幽灵信号向下穿透。",
             )
-            bus.node_status_changed.emit(self.node_id, "Skipped", "{}")
+            self._emit_status(self.node_id, "Skipped", "{}")
             return
 
-        bus.node_status_changed.emit(self.node_id, "Running", "")
+        self._emit_status(self.node_id, "Running", "")
         try:
+            if not isinstance(self.config, dict) or not isinstance(self.inputs, dict):
+                raise TypeError("Node config and inputs must be dictionaries")
+            if self.policy is None or self.node_spec is None:
+                raise PermissionDenied("NodeWorker requires an authorized execution policy")
+            from functions import func_system
+            if func_system.SAFE_POWER_MODE:
+                ExecutionPolicy.authorize(
+                    review_workflow({self.node_id: self.node_spec}, [], self.policy.source),
+                    read_only=True,
+                )
+            if (self.node_spec.get("name") != self.node_name
+                    or self.node_spec.get("config") != self.config
+                    or bool(self.node_spec.get("is_disabled", False)) != self.is_disabled):
+                raise PermissionDenied("Worker differs from reviewed node")
+            self.policy.check_node(self.node_id, self.node_spec, self.fingerprint)
             node_meta = NODE_REGISTRY.get(self.node_name)
             func = node_meta["func"]
 
-            result_data = func(resolve_config(self.config), self.inputs)
+            result_data = func(deepcopy(self.config), self.inputs)
 
             # Long-running HAL functions return as soon as they observe the
             # shared stop event. Never route their partial result downstream.
             if stop_event and stop_event.is_set():
-                bus.node_status_changed.emit(self.node_id, "Cancelled", "")
+                self._emit_status(self.node_id, "Cancelled", "")
                 return
 
             if not isinstance(result_data, dict):
@@ -79,16 +108,16 @@ class NodeWorker(QRunnable):
             status = result_data.get("status", "Success")
             if status in {"Error", "Failure", "Failed"}:
                 status = "Failed"
-            bus.node_status_changed.emit(self.node_id, status, str(result_data))
+            self._emit_status(self.node_id, status, str(result_data))
 
         except Exception as e:
             if stop_event and stop_event.is_set():
-                bus.node_status_changed.emit(self.node_id, "Cancelled", "")
+                self._emit_status(self.node_id, "Cancelled", "")
                 return
             bus.log_emitted.emit(
                 "ERROR", "Engine", f"❌ [{self.node_name}] 错误: {str(e)}"
             )
-            bus.node_status_changed.emit(self.node_id, "Failed", "")
+            self._emit_status(self.node_id, "Failed", "")
 
 
 class DAGEngine(QObject):
@@ -103,9 +132,26 @@ class DAGEngine(QObject):
         self.execution_failed = False
         self.is_running = False
         self.active_nodes = set()
+        self._workers_inflight = set()
+        self.global_context = ExecutionContext()
+        self.run_id = None
+        self.policy = None
+        self.source = "local"
+        self._edges_data = []
+        self._managed = False
+        bus.run_node_status_changed.connect(self._on_run_node_status_changed)
         bus.node_status_changed.connect(self._on_node_status_changed)
 
-    def load_from_ui(self, nodes_info: dict, edges_data: list):
+    def load_from_ui(self, nodes_info: dict, edges_data: list, *, source="local"):
+        self._assert_owner_thread()
+        if self.is_running:
+            raise RuntimeError("Cannot replace a running workflow")
+        nodes_info = deepcopy(nodes_info)
+        for info in nodes_info.values():
+            info["config"] = resolve_config(info.get("config", {}))
+        self.source = source
+        self._edges_data = deepcopy(edges_data)
+        self.policy = None
         self.graph.clear()
         self.node_data_map = nodes_info
         self.results_cache = {}
@@ -151,17 +197,60 @@ class DAGEngine(QObject):
                 # 没环，一切正常放行
                 pass
 
+    def review_execution(self):
+        self._assert_owner_thread()
+        return review_workflow(self.node_data_map, self._edges_data, self.source)
+
+    def _assert_owner_thread(self):
+        if QThread.currentThread() != self.thread():
+            raise RuntimeError("DAGEngine scheduling must run on its owning Qt thread")
+
+    def authorize_execution(self, approved=(), *, read_only=False):
+        self._assert_owner_thread()
+        self.policy = ExecutionPolicy.authorize(self.review_execution(), approved, read_only=read_only)
+        return self.policy
+
     def start_execution(self):
+        self._assert_owner_thread()
         if self.is_running:
             bus.log_emitted.emit(
                 "WARN", "Engine", "⛔ 工作流仍在执行中，本次重复点火已拦截。"
             )
             return False
 
-        self.global_context = {}
+        try:
+            review = self.review_execution()
+            from functions import func_system
+            if func_system.SAFE_POWER_MODE:
+                self.policy = ExecutionPolicy.authorize(review, read_only=True)
+            elif self.policy is None:
+                self.policy = ExecutionPolicy.authorize(review)
+            if self.policy.fingerprint != review.fingerprint:
+                raise PermissionDenied("Workflow changed after review")
+            for node_id, info in self.node_data_map.items():
+                if not info.get("is_disabled", False):
+                    self.policy.check_node(node_id, info, review.fingerprint)
+        except (PermissionDenied, ValueError, TypeError) as exc:
+            self.execution_failed = True
+            bus.log_emitted.emit("ERROR", "Security", str(exc))
+            return False
+
+        self.global_context.close()
+        self.global_context = ExecutionContext()
+        self.run_id = uuid4().hex
+        self._managed = True
+        self._run_fingerprint = review.fingerprint
+        # Grants are consumed by this run; subsequent starts need fresh approval.
+        self._run_policy, self.policy = self.policy, None
+        bus.log_emitted.emit(
+            "INFO", "Security",
+            f"Authorized run {self.run_id}; source={self.source}; fingerprint={review.fingerprint}; "
+            f"grants={','.join(sorted(self._run_policy.grants)) or 'read_only'}",
+        )
         self.node_locks = {}
         self.execution_failed = False
         self.active_nodes = set()
+        self._workers_inflight = set()
         self.is_running = True
 
         for n in self.graph.nodes():
@@ -176,20 +265,30 @@ class DAGEngine(QObject):
                 # {edge signal_key: {kind, source_id, envelope}}
                 "signals": {},
             }
-            bus.node_status_changed.emit(n, "Idle", "")
+            self._emit_status(n, "Idle", "")
 
         start_nodes = [n for n, locks in self.node_locks.items() if locks["total"] == 0]
         if not start_nodes:
             bus.log_emitted.emit("ERROR", "Engine", "找不到启动起点！")
             self.is_running = False
+            self.global_context.close()
             return False
 
+        # Reserve roots first: synchronous test pools and fast workers must not
+        # make the run look idle between dispatching two parallel roots.
+        self.active_nodes.update(start_nodes)
         for n_id in start_nodes:
             self._dispatch_node(n_id)
         return True
 
     def _dispatch_node(self, node_id: str, injected_signals=None):
+        if node_id in self._workers_inflight:
+            # One node instance owns its execution slot. Reentrant feedback may
+            # not make a set-based active-node tracker retire a live worker.
+            self._abort_execution("Concurrent re-entry of a node; serialize the feedback branch")
+            return
         if self.execution_failed or (stop_event and stop_event.is_set()):
+            self.active_nodes.discard(node_id)
             self._cancel_execution()
             return
         node_inputs = {}
@@ -235,9 +334,13 @@ class DAGEngine(QObject):
             )
             return
 
+        node_inputs = deepcopy(node_inputs)
+        received_signals = deepcopy(received_signals)
+
         # 【微创补丁 2】：悄悄把记忆体和节点 ID 塞进 inputs 里传给节点
-        node_inputs["__global_context__"] = getattr(self, "global_context", {})
+        node_inputs["__global_context__"] = self.global_context
         node_inputs["__node_id__"] = node_id
+        node_inputs["__run_id__"] = self.run_id
         node_inputs["__signals__"] = received_signals
         node_inputs["__values__"] = [signal.get("value") for signal in received_signals]
         node_inputs["__value__"] = (
@@ -245,14 +348,27 @@ class DAGEngine(QObject):
         )
 
         info = self.node_data_map[node_id]
+        try:
+            current = self.review_execution()
+            if current.fingerprint != self._run_fingerprint:
+                raise PermissionDenied("Workflow changed during execution")
+            if not info.get("is_disabled", False):
+                self._run_policy.check_node(node_id, info, current.fingerprint)
+        except (PermissionDenied, ValueError, TypeError) as exc:
+            self.active_nodes.discard(node_id)
+            self._abort_execution(str(exc), node_id)
+            return
         worker = NodeWorker(
             node_id,
             info["name"],
             info["config"],
             node_inputs,
             info.get("is_disabled", False),
+            run_id=self.run_id, policy=self._run_policy,
+            fingerprint=self._run_fingerprint, node_spec=info,
         )
         self.active_nodes.add(node_id)
+        self._workers_inflight.add(node_id)
         self.thread_pool.start(worker)
 
     def _schedule_finish_check(self):
@@ -264,12 +380,15 @@ class DAGEngine(QObject):
         if not self.is_running or self.active_nodes:
             return
         self.is_running = False
+        self.global_context.close()
         cancelled = bool(stop_event and stop_event.is_set())
         if cancelled:
             bus.log_emitted.emit("WARN", "Engine", "🛑 工作流已完全停止。")
         elif not self.execution_failed:
             bus.log_emitted.emit("SUCCESS", "Engine", "✅ 工作流执行完成。")
-        bus.dag_completed.emit("cancelled" if cancelled else "finished", not self.execution_failed)
+        reason = "cancelled" if cancelled else "finished"
+        bus.run_dag_completed.emit(self.run_id, reason, not self.execution_failed)
+        bus.dag_completed.emit(reason, not self.execution_failed)
 
     def _cancel_execution(self):
         if not self.execution_failed:
@@ -307,10 +426,25 @@ class DAGEngine(QObject):
                 self.node_locks[n]["signals"] = new_signals
 
                 if n in descendants:
-                    bus.node_status_changed.emit(n, "Idle", "")
+                    self._emit_status(n, "Idle", "")
+
+    @pyqtSlot(str, str, str, str)
+    def _on_run_node_status_changed(self, run_id, node_id, status, result_str):
+        if run_id == self.run_id and self.is_running:
+            self._route_node_status(node_id, status, result_str)
 
     @pyqtSlot(str, str, str)
     def _on_node_status_changed(self, node_id: str, status: str, result_str: str):
+        # Legacy/public statuses are display-only for managed runs. A worker
+        # from another engine (even with the same node IDs) cannot route here.
+        if not self._managed and self.is_running:
+            self._route_node_status(node_id, status, result_str)
+
+    def _emit_status(self, node_id, status, result_str):
+        bus.run_node_status_changed.emit(self.run_id, node_id, status, result_str)
+        bus.node_status_changed.emit(node_id, status, result_str)
+
+    def _route_node_status(self, node_id: str, status: str, result_str: str):
         if status in {
             "Success",
             "Skipped",
@@ -319,6 +453,7 @@ class DAGEngine(QObject):
             "Jump_Triggered",
         }:
             self.active_nodes.discard(node_id)
+            self._workers_inflight.discard(node_id)
 
         if status in {"Cancelled", "Jump_Triggered"}:
             self._cancel_execution()
@@ -429,7 +564,7 @@ class DAGEngine(QObject):
         self.execution_failed = True
         bus.log_emitted.emit("ERROR", "Engine", message)
         if failed_node_id:
-            bus.node_status_changed.emit(failed_node_id, "Failed", "")
+            self._emit_status(failed_node_id, "Failed", "")
         self._schedule_finish_check()
 
     def _resolve_dependency(
@@ -520,6 +655,6 @@ class DAGEngine(QObject):
 
             # 隐式 OR 门：只有全军覆没才是 Skipped，只要有1个 Trigger 就执行
             if skipped_count > 0 and triggered_count == 0:
-                bus.node_status_changed.emit(node_id, "Skipped", "{}")
+                self._emit_status(node_id, "Skipped", "{}")
             else:
                 self._dispatch_node(node_id)

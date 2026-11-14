@@ -92,3 +92,14 @@ class LocalizationTests(QtTestCase):
 
     def test_unknown_user_text_is_preserved(self):
         self.assertEqual(tr("用户自行填写的业务数据 123"), "用户自行填写的业务数据 123")
+
+    def test_v301_title_updates_in_both_languages(self):
+        window = MainWindow()
+        try:
+            self.assertEqual(window.windowTitle(), "AEGIS 3.0.1 - Command Terminal")
+            window.set_ui_language("zh", persist=False)
+            self.assertEqual(window.windowTitle(), "AEGIS 3.0.1 - 战术指挥终端")
+            window.set_ui_language("en", persist=False)
+            self.assertEqual(window.windowTitle(), "AEGIS 3.0.1 - Command Terminal")
+        finally:
+            window.close()

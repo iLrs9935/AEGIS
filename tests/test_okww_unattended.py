@@ -745,6 +745,7 @@ class DailyWorkflowPolicyTests(unittest.TestCase):
                         proof = inputs['__global_context__'].get(okww.STATE_KEY)
                         if proof is not None:
                             proof['cleanup_verified'] = not fail
+                            inputs['__global_context__'][okww.STATE_KEY] = proof
                         return {
                             "status": "Success",
                             "active_port": "清理失败" if fail else "已清理",
@@ -771,6 +772,7 @@ class DailyWorkflowPolicyTests(unittest.TestCase):
                     for item_id, item in node_map.items()
                 }
                 engine.load_from_ui(nodes_info, edges)
+                engine.authorize_execution(engine.review_execution().required)
                 with mock.patch.object(
                     system_nodes, "execute_delayed_hibernate", return_value=True
                 ) as hibernate, mock.patch.object(

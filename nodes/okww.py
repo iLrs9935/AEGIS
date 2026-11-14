@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from core.context import stateful
+
 import os
 import time
 from pathlib import Path
@@ -124,6 +126,7 @@ init_schema = {
 
 
 @register_node(name="OK-WW监控初始化", category="OK-WW", schema=init_schema)
+@stateful(STATE_KEY)
 def initialise_okww_monitor(config, inputs):
     """Fail closed if an existing/user-owned OK-WW or game session is found."""
 
@@ -271,6 +274,7 @@ def _update_restart_result(state: dict, summary: str) -> dict:
 
 
 @register_node(name="OK-WW任务监控", category="OK-WW", schema=monitor_schema)
+@stateful(STATE_KEY)
 def monitor_okww_task(config, inputs):
     """Route only from official log truth, with crash and timeout fallbacks."""
 
@@ -429,6 +433,7 @@ cleanup_schema = {
 
 
 @register_node(name="OK-WW安全清理", category="OK-WW", schema=cleanup_schema)
+@stateful(STATE_KEY)
 def cleanup_okww_session(config, inputs):
     """Kill and verify only process identities created after preflight."""
 
