@@ -9,13 +9,14 @@
 <p align="center">
   <a href="https://github.com/iLrs9935/AEGIS/actions/workflows/ci.yml"><img src="https://github.com/iLrs9935/AEGIS/actions/workflows/ci.yml/badge.svg" alt="Source checks"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-238636?style=flat-square" alt="MIT license"></a>
+  <a href="https://github.com/iLrs9935/AEGIS/releases/latest"><img src="https://img.shields.io/github/v/release/iLrs9935/AEGIS?style=flat-square" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/platform-Windows-2563eb?style=flat-square" alt="Windows">
   <img src="https://img.shields.io/badge/Python-3.12%20to%203.14-3776ab?style=flat-square" alt="Python 3.12 to 3.14">
 </p>
 
 <p align="center">
   <strong>English</strong> · <a href="README.zh-CN.md">简体中文</a><br>
-  <a href="#quick-start">Quick start</a> · <a href="#example-workflows">Examples</a> · <a href="#appearance">Themes &amp; connections</a> · <a href="SECURITY.md">Private configuration</a>
+  <a href="#download">Download</a> · <a href="#quick-start">Run from source</a> · <a href="#example-workflows">Examples</a> · <a href="#appearance">Themes &amp; connections</a> · <a href="SECURITY.md">Private configuration</a>
 </p>
 
 ![AEGIS English interface with the author's generated background](docs/screenshots/theme-custom-background-en.png)
@@ -39,7 +40,25 @@ AEGIS is a Windows desktop workflow editor for computer vision, mouse and keyboa
 - English and Simplified Chinese interface controls, node menus, configuration labels, choices, and port labels.
 - Optional local model inference, browser scraping, and reliable Bark notifications with a local outbox.
 
+## Download
+
+**[Download AEGIS v3.0.0 for Windows x64](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-windows-x64.zip)** — portable ZIP, no separate Python installation required.
+
+1. Extract the entire ZIP into a writable folder.
+2. Run **AEGIS Command Terminal.exe**, keeping `_internal` beside it.
+3. Choose **EN / 中文** and open one of the five included workflows.
+
+| File | Use |
+| --- | --- |
+| [Windows x64 portable ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-windows-x64.zip) | Run the application |
+| [Audited source ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-source.zip) | Read or build the release source, with a file manifest |
+| [SHA256SUMS.txt](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/SHA256SUMS.txt) | Verify the downloaded archives |
+
+The standard portable edition includes the editor, vision/keyboard/mouse features and OK-WW nodes. Optional llama-cpp-python, model weights, CUDA libraries and DXCAM are not bundled; use a source/custom build for those backends. OK-WW itself is installed separately. The Windows executable is unsigned. See the [portable guide](docs/PORTABLE.md) for private configuration and bundled dependency licenses.
+
 ## Quick start
+
+To run from source or prepare a custom build:
 
 Requires **Windows** and **Python 3.12–3.14**. The source repository excludes private workflows, local settings, databases, Python environments, model weights, and native DLL bundles.
 
@@ -173,10 +192,12 @@ The capture uses isolated preferences and public examples; it does not run the w
 
 ```powershell
 python -m pip install -r requirements-build.txt
-python pyinstaller.py
+python scripts/build_portable.py --version 3.0.0 --output release/my-v3.0.0-build
 ```
 
-The build uses the reviewed spec and only includes public workflows and approved image templates. Optional native inference DLLs require `AEGIS_BUNDLE_LLAMA=1` and locally supplied dependencies under `dlls/`.
+The portable builder copies an audited public-only snapshot into a fresh directory, builds the Windows executable, includes dependency licenses and examples, and emits Windows/source ZIPs with SHA256 checksums. It requires a clean standard build environment and preserves existing output directories.
+
+For a custom PyInstaller directory, use `python pyinstaller.py` after installing the necessary optional dependencies. The reviewed spec only includes public workflows and approved image templates. Optional native inference DLLs require `AEGIS_BUNDLE_LLAMA=1` and locally supplied dependencies under `dlls/`.
 
 AEGIS performs real keyboard, mouse, process, and power actions. Inspect unfamiliar workflows before running them. `--safe-power` intercepts hibernation and terminal exit; other actions still execute.
 

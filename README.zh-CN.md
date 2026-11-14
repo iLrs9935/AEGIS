@@ -7,13 +7,14 @@
 <p align="center">
   <a href="https://github.com/iLrs9935/AEGIS/actions/workflows/ci.yml"><img src="https://github.com/iLrs9935/AEGIS/actions/workflows/ci.yml/badge.svg" alt="源码检查与测试"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-238636?style=flat-square" alt="MIT 许可证"></a>
+  <a href="https://github.com/iLrs9935/AEGIS/releases/latest"><img src="https://img.shields.io/github/v/release/iLrs9935/AEGIS?style=flat-square" alt="最新发布版本"></a>
   <img src="https://img.shields.io/badge/platform-Windows-2563eb?style=flat-square" alt="Windows">
   <img src="https://img.shields.io/badge/Python-3.12%20to%203.14-3776ab?style=flat-square" alt="Python 3.12 至 3.14">
 </p>
 
 <p align="center">
   <a href="readme.md">English</a> · <strong>简体中文</strong><br>
-  <a href="#快速开始">快速开始</a> · <a href="examples/README.md">示例工作流</a> · <a href="#皮肤与连线">皮肤与连线</a> · <a href="SECURITY.md">隐私配置</a>
+  <a href="#下载免安装版">下载免安装版</a> · <a href="#快速开始">源码运行</a> · <a href="examples/README.md">示例工作流</a> · <a href="#皮肤与连线">皮肤与连线</a> · <a href="SECURITY.md">隐私配置</a>
 </p>
 
 ![使用作者生成背景图的 AEGIS 中文界面](docs/screenshots/theme-custom-background-zh.png)
@@ -41,7 +42,25 @@ AEGIS 是一个面向 Windows 的节点式自动化编排器。你可以把视�
 - 41 种内置节点，覆盖动作、AI、逻辑、记忆、网络、通知、系统、文本、时间、触发和视觉。
 - JSON 工作流：图纸默认保存在 `workflows/`，也可以由 AI 直接生成。
 
+## 下载免安装版
+
+**[下载 AEGIS v3.0.0 Windows x64 免安装包](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-windows-x64.zip)**，无需单独安装 Python。
+
+1. 将整个 ZIP 解压到可写目录。
+2. 运行 **AEGIS Command Terminal.exe**，让 `_internal` 与 EXE 保持在同一目录。
+3. 用右上角 **EN / 中文** 切换语言，再打开附带的五个示例工作流。
+
+| 文件 | 用途 |
+| --- | --- |
+| [Windows x64 免安装 ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-windows-x64.zip) | 直接运行软件 |
+| [已审阅源码 ZIP](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/AEGIS-v3.0.0-source.zip) | 查看或构建本次发布源码，附文件校验清单 |
+| [SHA256SUMS.txt](https://github.com/iLrs9935/AEGIS/releases/download/v3.0.0/SHA256SUMS.txt) | 核验下载文件 |
+
+基础免安装版包含编辑器、视觉/键鼠功能和 OK-WW 节点，不附带可选的 llama-cpp-python、模型、CUDA 库或 DXCAM；需要这些后端时可使用源码或自定义构建。OK-WW 本体需要单独安装。EXE 未做代码签名，私人配置和附带依赖的许可证说明见[免安装版指南](docs/PORTABLE.md)。
+
 ## 快速开始
+
+需要从源码运行或自行构建时，使用以下步骤。
 
 需要 Windows 和 Python 3.12–3.14。源码发布包不附带本地 Python 环境、模型、DLL 或私人图纸。
 
@@ -327,10 +346,12 @@ python scripts/export_github.py --output release/AEGIS-github-source.zip
 
 ```powershell
 python -m pip install -r requirements-build.txt
-python pyinstaller.py
+python scripts/build_portable.py --version 3.0.0 --output release/my-v3.0.0-build
 ```
 
-打包脚本先执行发布检查，只附带公开示例和已审阅的图片模板。可选本地推理 DLL 默认不附带；需要时设置 `AEGIS_BUNDLE_LLAMA=1` 并自行准备 `dlls/` 及其依赖。旧构建不代表当前源码。
+免安装包构建脚本先审阅白名单源码，再复制到全新目录构建，附带依赖许可证和公开示例，输出 Windows/源码 ZIP 及 SHA256 校验文件。它使用干净的标准构建环境，并保留已有构建目录。
+
+需要自定义 PyInstaller 目录时，可先安装相应的可选依赖，再运行 `python pyinstaller.py`。受审阅的 spec 仅附带公开示例和图片模板；可选本地推理 DLL 需要设置 `AEGIS_BUNDLE_LLAMA=1` 并自行准备 `dlls/` 及其依赖。旧构建不代表当前源码。
 
 更多配置与发布边界见 [SECURITY.md](SECURITY.md)，本次审阅记录见 [RELEASE_REVIEW.md](RELEASE_REVIEW.md)。
 
